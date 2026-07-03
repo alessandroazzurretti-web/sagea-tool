@@ -74,6 +74,7 @@
     flex-shrink: 0;
   }
   .tool-thumb span { width: 14px; height: 14px; border: 1px solid; }
+  .tool-icon { width: 46px; height: 46px; flex-shrink: 0; }
   .tool-text { flex: 1; min-width: 0; }
   .tool-title {
     font-family: 'Fraunces', Georgia, serif;
@@ -170,17 +171,15 @@
   </a>
 
   <a class="tool-card" href="calcolo-dosi.html">
-    <div class="tool-thumb">
-      <span style="background:#EAF1E2;border-color:#5C7A4A;"></span>
-      <span style="background:#FFF;border-color:#3D2F1F;"></span>
-      <span style="background:#F0DC8C;border-color:#4D3608;"></span>
-      <span style="background:#FFF;border-color:#3D2F1F;"></span>
-      <span style="background:#A8C0E0;border-color:#1F3F5C;"></span>
-      <span style="background:#FFF;border-color:#3D2F1F;"></span>
-      <span style="background:#F0B888;border-color:#5A2A08;"></span>
-      <span style="background:#FFF;border-color:#3D2F1F;"></span>
-      <span style="background:#E8A8A0;border-color:#5C2018;"></span>
-    </div>
+    <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <!-- beuta con livello di miscela e gocce -->
+      <path stroke="#3D2F1F" d="M9.5 2.5h5"/>
+      <path stroke="#3D2F1F" d="M10 2.5v5.2L4.6 18.6A1.8 1.8 0 0 0 6.2 21.5h11.6a1.8 1.8 0 0 0 1.6-2.9L14 7.7V2.5"/>
+      <path stroke="#5C7A4A" d="M7.2 14.5h9.6"/>
+      <circle cx="10.4" cy="17.6" r="0.5" fill="#5C7A4A" stroke="#5C7A4A"/>
+      <circle cx="13.8" cy="18.8" r="0.5" fill="#5C7A4A" stroke="#5C7A4A"/>
+      <path stroke="#5C7A4A" d="M19.5 4.2c0 1-.8 1.9-1.7 1.9s-1.7-.9-1.7-1.9c0-1.2 1.7-2.9 1.7-2.9s1.7 1.7 1.7 2.9z"/>
+    </svg>
     <div class="tool-text">
       <div class="tool-title">Calcolo Dosi e Miscele</div>
       <div class="tool-desc">Dosi per tesi in tutte le unità, LWA/TRV, acqua da preparare, controllo refluo</div>
