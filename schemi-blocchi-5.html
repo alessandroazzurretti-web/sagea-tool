@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#3D2F1F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Schemi RCBD">
+<title>Schemi a Blocchi · SAGEA Tool</title>
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="apple-touch-icon" href="../icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: #F5F1EA;
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #3D2F1F;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  body { min-height: 100vh; padding: 12px; padding-bottom: 128px; }
+  .container { max-width: 720px; margin: 0 auto; }
+
+  /* Header */
+  header {
+    border-bottom: 2px solid #3D2F1F;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+  }
+  .back-link {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #7D6B5C;
+    text-decoration: none;
+    margin-bottom: 6px;
+  }
+  .header-row { display: flex; align-items: center; gap: 10px; }
+
+  /* Barra azioni fissa */
+  .action-bar {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: #FFFFFF;
+    border-top: 1px solid #D4C9B8;
+    display: none;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    z-index: 50;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .action-bar.show { display: grid; }
+  .action-bar button {
+    border: 1px solid #D4C9B8;
+    background: #FFF;
+    padding: 8px 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #7D6B5C;
+    cursor: pointer;
+  }
+  .action-bar .ab-icon { font-size: 16px; line-height: 1; color: #3D2F1F; }
+  .action-bar button.active { background: #3D2F1F; color: #F5F1EA; border-color: #3D2F1F; }
+  .action-bar button.active .ab-icon { color: #F5F1EA; }
+  .leaf {
+    width: 28px; height: 28px; flex-shrink: 0;
+    color: #5C7A4A;
+  }
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1.1;
+    color: #3D2F1F;
+  }
+  .subtitle {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 11px;
+    color: #5C4D3E;
+    margin-top: 2px;
+  }
+
+  /* Card */
+  .card {
+    background: #FFFFFF;
+    border: 1px solid #D4C9B8;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #7D6B5C;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  /* Form */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #D4C9B8;
+    background: #FFF;
+    font-size: 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: #3D2F1F;
+    outline: none;
+    border-radius: 0;
+    -webkit-appearance: none;
+  }
+  input[type="text"]:focus { border-color: #3D2F1F; }
+  select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #D4C9B8;
+    background: #FFF;
+    font-size: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: #3D2F1F;
+    border-radius: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237D6B5C'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+  }
+
+  /* Toggle direzione */
+  .seg {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid #D4C9B8;
+    margin-top: 4px;
+  }
+  .seg button {
+    padding: 10px;
+    background: #FFF;
+    border: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: #3D2F1F;
+    cursor: pointer;
+  }
+  .seg button.active { background: #3D2F1F; color: #F5F1EA; }
+
+  /* Validazione */
+  .check {
+    margin: 12px 0;
+    padding: 8px 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    border: 1px solid;
+  }
+  .check.ok { background: #EAF1E2; border-color: #A8C088; }
+  .check.bad { background: #F4E4DC; border-color: #D4A8A0; }
+
+  /* Bottoni */
+  .btn-primary {
+    width: 100%;
+    padding: 12px;
+    background: #3D2F1F;
+    color: #F5F1EA;
+    border: none;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-primary:active { background: #5C4D3E; }
+  .btn-secondary {
+    padding: 10px 12px;
+    background: #FFF;
+    color: #3D2F1F;
+    border: 1px solid #3D2F1F;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .btn-secondary:active { background: #3D2F1F; color: #F5F1EA; }
+  .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+
+  /* Errore */
+  .error {
+    margin-top: 12px;
+    padding: 10px;
+    border-left: 4px solid #A04030;
+    background: #F4E4DC;
+    font-size: 12px;
+  }
+
+  /* Riepilogo */
+  .summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .summary-text { flex: 1; min-width: 0; }
+  .summary-title {
+    font-size: 14px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .summary-sub {
+    font-size: 10px;
+    color: #7D6B5C;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* Griglia campo */
+  .field-wrap {
+    overflow-x: auto;
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+  .field {
+    display: inline-block;
+    min-width: 100%;
+  }
+  .field-row {
+    display: grid;
+    gap: 3px;
+    margin-bottom: 3px;
+  }
+  .row-label {
+    width: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 4px;
+    font-size: 9px;
+    color: #7D6B5C;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .col-label {
+    text-align: center;
+    font-size: 9px;
+    color: #7D6B5C;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .cell {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    min-width: 0;
+    border: 1.5px solid;
+  }
+  .cell.empty {
+    background: #F0EBE0;
+    border: 1.5px dashed #C8BAA0;
+    color: #A89578;
+  }
+  .cell.empty span {
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .cell.excluded {
+    background: repeating-linear-gradient(45deg, #E8E0D2, #E8E0D2 5px, #D9CDB9 5px, #D9CDB9 10px);
+    border: 1.5px solid #C8BAA0;
+    color: #A08868;
+  }
+  .cell.excluded span {
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .cell.fixed {
+    border-width: 2.5px;
+    border-color: #3D2F1F !important;
+    box-shadow: inset 0 0 0 1.5px #FFF;
+  }
+  .plot-num {
+    position: absolute;
+    top: 2px;
+    left: 3px;
+    font-size: 8px;
+    line-height: 1;
+    font-family: 'IBM Plex Mono', monospace;
+    opacity: 0.6;
+  }
+  .field.arm-num .plot-num {
+    font-size: clamp(10px, 2.6vw, 13px);
+    font-weight: 500;
+    opacity: 0.95;
+  }
+  .star {
+    position: absolute;
+    top: 2px;
+    right: 3px;
+    font-size: 9px;
+    line-height: 1;
+    color: #3D2F1F;
+    font-weight: 700;
+  }
+  .cell-content {
+    display: flex;
+    align-items: baseline;
+    gap: 1px;
+    margin-top: 4px;
+  }
+  .tesi {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
+    font-size: clamp(16px, 4.5vw, 28px);
+    line-height: 1;
+  }
+  .rep {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(8px, 2.2vw, 12px);
+    line-height: 1;
+    opacity: 0.85;
+  }
+
+  /* Mini-griglia esclusione celle */
+  .mini-cell {
+    aspect-ratio: 1 / 1;
+    min-width: 0;
+    padding: 0;
+    border: 1.5px solid #D4C9B8;
+    background: #FFF;
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: #A04030;
+    border-radius: 0;
+    -webkit-appearance: none;
+  }
+  .mini-cell.off {
+    background: repeating-linear-gradient(45deg, #E8E0D2, #E8E0D2 5px, #D9CDB9 5px, #D9CDB9 10px);
+    border-color: #A08868;
+  }
+  .mini-hint {
+    font-size: 11px;
+    color: #7D6B5C;
+    margin-bottom: 6px;
+  }
+  .mini-reset {
+    margin-top: 6px;
+    background: none;
+    border: none;
+    font-size: 10px;
+    color: #7D6B5C;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+  }
+
+  /* Modalità sposta */
+  .btn-secondary.active { background: #3D2F1F; color: #F5F1EA; }
+  .field.editing .cell { touch-action: none; -webkit-user-select: none; user-select: none; }
+  .field.editing .cell[data-has="1"] { cursor: grab; }
+  .cell.drag-src { opacity: 0.35; }
+  .cell.drop-hint { outline: 3px solid #3D2F1F; outline-offset: -3px; }
+  .drag-ghost {
+    position: fixed;
+    z-index: 999;
+    pointer-events: none;
+    opacity: 0.92;
+    box-shadow: 0 6px 16px rgba(61,47,31,0.35);
+  }
+  .edit-hint {
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    border-left: 4px solid #5C7A4A;
+    background: #F5F1EA;
+    font-size: 11px;
+    color: #5C4D3E;
+  }
+
+  /* GPS marker */
+  .gps {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .gps-icon { font-size: 22px; line-height: 1; color: #3D2F1F; }
+  .gps-label { font-size: 10px; color: #7D6B5C; }
+
+  /* Sezioni collassabili */
+  .collapse-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: none;
+    border: none;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #7D6B5C;
+    cursor: pointer;
+    text-align: left;
+  }
+  .collapse-content { padding: 0 12px 16px; display: none; }
+  .collapse-content.open { display: block; }
+  .chevron { transition: transform 0.2s; }
+  .chevron.open { transform: rotate(180deg); }
+
+  /* Metriche */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .metric-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #7D6B5C;
+    margin-bottom: 2px;
+  }
+  .metric-value {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-size: 24px;
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+  .metric-value.good { color: #3F6B2F; }
+  .metric-value .check-mark { font-size: 14px; margin-left: 4px; color: #5C7A4A; }
+  .metric-note {
+    font-size: 9px;
+    font-style: italic;
+    color: #7D6B5C;
+  }
+
+  /* Legenda */
+  .legend-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+  }
+  .legend-swatch {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
+    font-size: 14px;
+    border: 1.5px solid;
+  }
+  .legend-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .legend-sub { font-style: italic; font-size: 10px; color: #7D6B5C; margin-left: 4px; }
+  .reps-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; padding-top: 12px; border-top: 1px solid #E4DDC9; }
+  .rep-chip {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 11px;
+    padding: 2px 6px;
+    border: 1px solid #7D6B5C;
+    color: #3D2F1F;
+  }
+
+  /* Buffer notice */
+  .buffer-notice {
+    margin-top: 12px;
+    padding: 8px;
+    border-left: 4px solid #A89578;
+    background: #F5F1EA;
+    font-size: 11px;
+    color: #5C4D3E;
+  }
+
+  /* Lista vincoli */
+  .checks-list { margin-top: 12px; font-size: 10px; color: #7D6B5C; }
+  .checks-list div { margin-bottom: 2px; }
+
+  /* Schermata iniziale */
+  .intro ul { list-style: none; padding-left: 0; }
+  .intro li { font-size: 12px; margin-bottom: 8px; padding-left: 14px; position: relative; }
+  .intro li::before { content: '•'; position: absolute; left: 2px; color: #5C7A4A; }
+
+  footer {
+    margin-top: 24px;
+    padding-top: 12px;
+    text-align: center;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #A89578;
+  }
+
+  /* Didascalia visibile solo in stampa */
+  .print-caption {
+    display: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: #3D2F1F;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1.5px solid #3D2F1F;
+  }
+
+  /* Stampa: SOLO lo schema di campo */
+  @media print {
+    body { background: #FFF; padding: 0; }
+    .no-print, header, footer,
+    #metrics-card, #legend-card { display: none !important; }
+    .print-caption { display: block; }
+    .card { border: none; padding: 0; }
+    .cell, .legend-swatch {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    @page { size: landscape; margin: 0.8cm; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="no-print">
+    <a href="../index.html" class="back-link">‹ SAGEA</a>
+    <div class="header-row">
+      <svg class="leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>
+      </svg>
+      <h1>Schemi a Blocchi</h1>
+    </div>
+  </header>
+
+  <!-- Form parametri -->
+  <section id="form-section" class="card no-print">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+      <span class="label" style="margin:0;">Nuovo schema</span>
+      <button id="close-form-btn" onclick="closeForm()" style="background:none;border:none;font-size:10px;color:#7D6B5C;cursor:pointer;display:none;">✕ chiudi</button>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <label class="label">Righe</label>
+        <input type="text" inputmode="numeric" pattern="[0-9]*" id="rows" value="4">
+      </div>
+      <div>
+        <label class="label">Colonne</label>
+        <input type="text" inputmode="numeric" pattern="[0-9]*" id="cols" value="6">
+      </div>
+      <div>
+        <label class="label">Tesi</label>
+        <input type="text" inputmode="numeric" pattern="[0-9]*" id="tesi" value="6">
+      </div>
+      <div>
+        <label class="label">Repliche</label>
+        <input type="text" inputmode="numeric" pattern="[0-9]*" id="reps" value="4">
+      </div>
+    </div>
+
+    <label class="label" style="margin-top:14px;">Disegno sperimentale</label>
+    <select id="design" onchange="setDesign(this.value)">
+      <option value="rcb" selected>Blocchi randomizzati · RCB</option>
+      <option value="crd">Completamente randomizzato · CRD</option>
+      <option value="latin">Quadrato latino</option>
+      <option disabled>Split-plot · in arrivo</option>
+      <option disabled>Fattoriale · in arrivo</option>
+    </select>
+
+    <label class="label" style="margin-top:14px;">Numerazione parcelle</label>
+    <div class="seg">
+      <button type="button" id="num-seq" class="active" onclick="setNumbering('seq')">1 · 2 · 3 …</button>
+      <button type="button" id="num-arm" onclick="setNumbering('arm')">101 · 201 · 301</button>
+    </div>
+
+    <div id="shape-section">
+      <label class="label" style="margin-top:14px;">Forma del campo</label>
+      <div class="field-wrap">
+        <div id="mini-grid" class="field"></div>
+      </div>
+      <button type="button" id="mini-reset" class="mini-reset" onclick="resetExcluded()" style="display:none;">↺ ripristina tutte le celle</button>
+    </div>
+
+    <div id="check" class="check ok"></div>
+
+    <button class="btn-primary" onclick="generate()">
+      🔀 <span id="gen-btn-label">Genera schema</span>
+    </button>
+
+    <div id="error" class="error" style="display:none;"></div>
+  </section>
+
+  <!-- Risultato -->
+  <div id="result" style="display:none;">
+    <div id="edit-hint" class="edit-hint no-print" style="display:none;">
+      Tieni premuta una parcella e trascinala: <strong>sopra un'altra si scambiano</strong>, <strong>su una cella vuota si sposta</strong>.
+    </div>
+    <div class="card">
+      <div class="label" id="map-label" style="text-align:center; margin-bottom:12px;">Mappa area prova</div>
+      <div id="print-caption" class="print-caption"></div>
+      <div class="field-wrap">
+        <div id="field" class="field"></div>
+      </div>
+    </div>
+
+    <!-- Sezioni collassabili -->
+    <div id="metrics-card" class="card" style="padding:0;">
+      <button class="collapse-toggle" onclick="toggleCollapse('metrics')">
+        <span>Qualità distribuzione</span>
+        <span class="chevron" id="metrics-chev">▼</span>
+      </button>
+      <div class="collapse-content" id="metrics-content"></div>
+    </div>
+
+    <div id="legend-card" class="card" style="padding:0;">
+      <button class="collapse-toggle" onclick="toggleCollapse('legend')">
+        <span id="legend-title">Legenda</span>
+        <span class="chevron" id="legend-chev">▼</span>
+      </button>
+      <div class="collapse-content" id="legend-content"></div>
+    </div>
+  </div>
+
+  <!-- Schermata iniziale -->
+  <div id="intro" class="card intro">
+    <div class="label">Come funziona</div>
+    <ul style="margin-top:10px;">
+      <li>Disegni: <strong>RCB</strong>, <strong>CRD</strong>, <strong>quadrato latino</strong></li>
+      <li>Partenza <strong>⊕ = tesi 1 · replica I</strong>, poi serpentina verticale</li>
+      <li>Mai la stessa tesi in <strong>celle confinanti</strong></li>
+      <li><strong>Doppi in riga e colonna</strong> evitati quando possibile</li>
+      <li>Campi irregolari: tocca le celle da <strong>escludere ✕</strong></li>
+    </ul>
+  </div>
+
+</div>
+
+<nav id="action-bar" class="action-bar no-print">
+  <button onclick="openForm()"><span class="ab-icon">⚙</span><span>Nuovo schema</span></button>
+  <button id="edit-toggle" onclick="toggleEditMode()"><span class="ab-icon">✥</span><span>Sposta</span></button>
+  <button onclick="exportImage()"><span class="ab-icon">🖼</span><span>Immagine</span></button>
+</nav>
+
+<script>
+// ============== STATE ==============
+const state = {
+  direction: 'vertical',
+  design: 'rcb', // 'rcb' | 'crd' | 'latin' 
+  scheme: null,
+  editMode: false,
+  numbering: 'seq', // 'seq' = 1,2,3… | 'arm' = replica×100 + progressivo (101, 201…)
+  excluded: new Set() // celle depennate, chiave "rigaVisuale,colonna"
+};
+
+const palette = [
+  { bg: '#FFFFFF', fg: '#3D2F1F', name: 'bianco' },
+  { bg: '#E8A8A0', fg: '#5C2018', name: 'rosso' },
+  { bg: '#A8C0E0', fg: '#1F3F5C', name: 'blu' },
+  { bg: '#F0B888', fg: '#5A2A08', name: 'arancio' },
+  { bg: '#B8D4A8', fg: '#2D4A1F', name: 'verde' },
+  { bg: '#F0C8D8', fg: '#5C2538', name: 'rosa' },
+  { bg: '#F0DC8C', fg: '#4D3608', name: 'giallo' },
+  { bg: '#C8B8D8', fg: '#2F1F5C', name: 'viola' },
+  { bg: '#E8D8E8', fg: '#3D2548', name: 'viola-bianco' },
+  { bg: '#F4C880', fg: '#4A2818', name: 'giallo-rosso' },
+  { bg: '#D4B8A0', fg: '#3D2516', name: 'rosso-verde' },
+  { bg: '#D8C0D0', fg: '#2F2540', name: 'rosa-blu' },
+  { bg: '#F0D0C8', fg: '#4A1F18', name: 'bianco-rosso' },
+  { bg: '#E8C8D0', fg: '#4D2538', name: 'bianco-rosa' },
+  { bg: '#A8C8C0', fg: '#1F3D38', name: 'verde-blu' },
+  { bg: '#C0D0A8', fg: '#2F4520', name: '' },
+  { bg: '#D0C8A8', fg: '#3D3520', name: '' },
+  { bg: '#A8B8C8', fg: '#202F40', name: '' },
+  { bg: '#C8A8B8', fg: '#3D1F2F', name: '' },
+  { bg: '#A8C0A8', fg: '#1F3F1F', name: '' },
+];
+
+// ============== UTILS ==============
+function toRoman(num) {
+  const map = [['M',1000],['CM',900],['D',500],['CD',400],['C',100],['XC',90],['L',50],['XL',40],['X',10],['IX',9],['V',5],['IV',4],['I',1]];
+  let result = '', n = num;
+  for (const [sym, val] of map) {
+    while (n >= val) { result += sym; n -= val; }
+  }
+  return result;
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getInt(id, def) {
+  const v = parseInt(document.getElementById(id).value, 10);
+  return (isNaN(v) || v < 1) ? def : v;
+}
+
+// Sanitizzo input al volo: solo numeri, permetto vuoto
+function setupNumericInput(id, defaultVal) {
+  const el = document.getElementById(id);
+  el.addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    updateCheck();
+  });
+  el.addEventListener('focus', e => e.target.select());
+  el.addEventListener('blur', e => {
+    if (e.target.value === '' || parseInt(e.target.value, 10) < 1) {
+      e.target.value = defaultVal;
+      updateCheck();
+    }
+  });
+}
+
+// ============== CELLE ESCLUSE ==============
+function exclKey(r, c) { return r + ',' + c; }
+
+// Rimuove esclusioni fuori dalla griglia corrente (es. dopo ridimensionamento)
+function pruneExcluded(rows, cols) {
+  for (const key of [...state.excluded]) {
+    const [r, c] = key.split(',').map(Number);
+    if (r >= rows || c >= cols) state.excluded.delete(key);
+  }
+}
+
+function toggleExcluded(r, c) {
+  const key = exclKey(r, c);
+  if (state.excluded.has(key)) state.excluded.delete(key);
+  else state.excluded.add(key);
+  updateCheck();
+}
+
+function resetExcluded() {
+  state.excluded.clear();
+  updateCheck();
+}
+
+function renderMiniGrid(rows, cols) {
+  const el = document.getElementById('mini-grid');
+  el.innerHTML = '';
+  const minCell = cols > 8 ? '32px' : '0';
+  const colTpl = `auto repeat(${cols}, minmax(${minCell}, 1fr))`;
+
+  // Header colonne
+  const headerRow = document.createElement('div');
+  headerRow.className = 'field-row';
+  headerRow.style.gridTemplateColumns = colTpl;
+  const corner = document.createElement('div');
+  corner.style.width = '22px';
+  headerRow.appendChild(corner);
+  for (let c = 0; c < cols; c++) {
+    const lbl = document.createElement('div');
+    lbl.className = 'col-label';
+    lbl.textContent = `C${c+1}`;
+    headerRow.appendChild(lbl);
+  }
+  el.appendChild(headerRow);
+
+  // Righe (stessa convenzione della mappa: riga visuale 0 = in alto)
+  for (let r = 0; r < rows; r++) {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'field-row';
+    rowEl.style.gridTemplateColumns = colTpl;
+    const rowLabel = document.createElement('div');
+    rowLabel.className = 'row-label';
+    rowLabel.textContent = `R${rows - r}`;
+    rowEl.appendChild(rowLabel);
+    for (let c = 0; c < cols; c++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      const off = state.excluded.has(exclKey(r, c));
+      btn.className = 'mini-cell' + (off ? ' off' : '');
+      btn.textContent = off ? '✕' : '';
+      btn.setAttribute('aria-label', `R${rows - r} C${c+1}` + (off ? ' esclusa' : ''));
+      btn.onclick = () => toggleExcluded(r, c);
+      rowEl.appendChild(btn);
+    }
+    el.appendChild(rowEl);
+  }
+
+  document.getElementById('mini-reset').style.display =
+    state.excluded.size > 0 ? 'inline' : 'none';
+}
+
+// ============== METRICHE ==============
+// Globale: serve sia in generazione sia dopo le modifiche manuali
+function computeMetrics(grid, treatments) {
+  const rows = grid.length, cols = grid[0].length;
+  const positions = {};
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (!grid[r][c]) continue;
+      const t = grid[r][c].treatment;
+      if (!positions[t]) positions[t] = [];
+      positions[t].push([r, c]);
+    }
+  }
+  let sameColCount = 0, sameRowCount = 0;
+  for (let t = 1; t <= treatments; t++) {
+    const pos = positions[t] || [];
+    const colCount = {}, rowCount = {};
+    for (const [r, c] of pos) {
+      colCount[c] = (colCount[c] || 0) + 1;
+      rowCount[r] = (rowCount[r] || 0) + 1;
+    }
+    for (const k in colCount) if (colCount[k] > 1) sameColCount += colCount[k] - 1;
+    for (const k in rowCount) if (rowCount[k] > 1) sameRowCount += rowCount[k] - 1;
+  }
+  // Adiacenze reali (coppie di stessa tesi nelle 8 celle vicine):
+  // dopo modifiche manuali può non essere più zero
+  let adjCount = 0;
+  const half = [[0,1],[1,-1],[1,0],[1,1]]; // metà direzioni: ogni coppia contata una volta
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (!grid[r][c]) continue;
+      for (const [dr, dc] of half) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] &&
+            grid[nr][nc].treatment === grid[r][c].treatment) adjCount++;
+      }
+    }
+  }
+  return { sameColCount, sameRowCount, adjCount };
+}
+
+// ============== DISEGNO SPERIMENTALE ==============
+const designInfo = {
+  rcb:   { nome: 'RCB',            desc: 'Ogni replica è un blocco compatto lungo la serpentina verticale ↑. Per campi con un gradiente.' },
+  crd:   { nome: 'CRD',            desc: 'Tesi distribuite a caso sull\'intero campo, senza blocchi. Per campi omogenei.' },
+  latin: { nome: 'Quadrato latino', desc: 'Ogni tesi una volta per riga e per colonna. Richiede righe = colonne = tesi = repliche. Per due gradienti perpendicolari.' }
+};
+
+function setDesign(v) {
+  state.design = v;
+  const shape = document.getElementById('shape-section');
+  if (v === 'latin') {
+    // quadrato completo: niente celle escluse, dimensioni allineate alle tesi
+    state.excluded.clear();
+    shape.style.display = 'none';
+    const t = getInt('tesi', 6);
+    document.getElementById('rows').value = t;
+    document.getElementById('cols').value = t;
+    document.getElementById('reps').value = t;
+  } else {
+    shape.style.display = 'block';
+  }
+  updateCheck();
+}
+
+// ============== SNAKE PATH ==============
+function buildSnakePath(rows, cols, direction) {
+  const path = [];
+  if (direction === 'horizontal') {
+    for (let logical = 0; logical < rows; logical++) {
+      const visualRow = rows - 1 - logical;
+      if (logical % 2 === 0) {
+        for (let c = 0; c < cols; c++) path.push([visualRow, c]);
+      } else {
+        for (let c = cols - 1; c >= 0; c--) path.push([visualRow, c]);
+      }
+    }
+  } else {
+    for (let c = 0; c < cols; c++) {
+      if (c % 2 === 0) {
+        for (let logical = 0; logical < rows; logical++) {
+          const visualRow = rows - 1 - logical;
+          path.push([visualRow, c]);
+        }
+      } else {
+        for (let visualRow = 0; visualRow < rows; visualRow++) {
+          path.push([visualRow, c]);
+        }
+      }
+    }
+  }
+  return path;
+}
+
+// ============== GENERAZIONE ==============
+function generate() {
+  const rows = getInt('rows', 4);
+  const cols = getInt('cols', 6);
+  const treatments = getInt('tesi', 6);
+  const replications = getInt('reps', 4);
+
+  const errEl = document.getElementById('error');
+  errEl.style.display = 'none';
+  errEl.textContent = '';
+
+  if (rows < 1 || cols < 1 || treatments < 1 || replications < 1) {
+    return showError('Tutti i valori devono essere ≥ 1');
+  }
+  pruneExcluded(rows, cols);
+  const excluded = new Set(state.excluded);
+  const totalCells = rows * cols;
+  const availableCells = totalCells - excluded.size;
+  const usedCells = treatments * replications;
+  if (availableCells < usedCells) {
+    const detail = excluded.size > 0
+      ? `${rows}×${cols}=${totalCells} − ${excluded.size} escluse = ${availableCells}`
+      : `${rows}×${cols}=${totalCells}`;
+    return showError(`Campo troppo piccolo: ${detail}, servono ${usedCells}`);
+  }
+  if (treatments === 1 && availableCells > 1) {
+    return showError('Con una sola tesi è impossibile evitare adiacenze.');
+  }
+
+  const bufferCells = availableCells - usedCells;
+  // La serpentina salta le celle escluse: numerazione e assegnazione continuano oltre
+  const path = buildSnakePath(rows, cols, state.direction)
+    .filter(([r, c]) => !excluded.has(exclKey(r, c)));
+  const usedPath = path.slice(0, usedCells);
+  const design = state.design;
+  if (design === 'latin') {
+    if (!(rows === cols && cols === treatments && treatments === replications)) {
+      return showError('Il quadrato latino richiede righe = colonne = tesi = repliche.');
+    }
+    if (excluded.size > 0) {
+      return showError('Il quadrato latino richiede il campo completo, senza celle escluse.');
+    }
+  }
+  // RCB/latino: niente doppi se possibile (latino: obbligatorio). CRD: nessun vincolo riga/colonna.
+  const wantNoRowDouble = design === 'latin' ? true : (design === 'crd' ? false : replications <= rows);
+  const wantNoColDouble = design === 'latin' ? true : (design === 'crd' ? false : replications <= cols);
+
+  function tryOneScheme(enforceNoRowDouble, enforceNoColDouble) {
+    const grid = Array.from({ length: rows }, () => Array(cols).fill(null));
+    const counts = Array(treatments + 1).fill(0); // usati solo dal CRD
+    const [r0, c0] = usedPath[0];
+    grid[r0][c0] = { treatment: 1, replication: 1, plotNum: 1 };
+    counts[1] = 1;
+
+    function getNeighborTreatments(r, c) {
+      const ts = new Set();
+      const dirs = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+      for (const [dr, dc] of dirs) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc]) {
+          ts.add(grid[nr][nc].treatment);
+        }
+      }
+      return ts;
+    }
+    function getRowTreatments(r) {
+      const ts = new Set();
+      for (let c = 0; c < cols; c++) if (grid[r][c]) ts.add(grid[r][c].treatment);
+      return ts;
+    }
+    function getColTreatments(c) {
+      const ts = new Set();
+      for (let r = 0; r < rows; r++) if (grid[r][c]) ts.add(grid[r][c].treatment);
+      return ts;
+    }
+
+    let backtracks = 0;
+    const MAX_BACKTRACKS = 50000;
+
+    function assign(pathIdx) {
+      if (backtracks > MAX_BACKTRACKS) return false;
+      if (pathIdx === usedPath.length) return true;
+      const [r, c] = usedPath[pathIdx];
+      const repIdx = Math.floor(pathIdx / treatments);
+      const repStart = repIdx * treatments;
+
+      // RCB/latino: dentro ogni blocco di replica ogni tesi compare una volta.
+      // CRD: nessun blocco, ogni tesi va usata esattamente "repliche" volte in totale.
+      const usedInRep = new Set();
+      if (design !== 'crd') {
+        for (let i = repStart; i < pathIdx; i++) {
+          const [pr, pc] = usedPath[i];
+          if (grid[pr][pc]) usedInRep.add(grid[pr][pc].treatment);
+        }
+      }
+      const neighborTs = getNeighborTreatments(r, c);
+      const rowTs = enforceNoRowDouble ? getRowTreatments(r) : new Set();
+      const colTs = enforceNoColDouble ? getColTreatments(c) : new Set();
+      // Vincolo desiderato ma rilassato → resta come preferenza soft:
+      // i candidati che NON creano doppi vengono provati per primi
+      const rowSoft = (!enforceNoRowDouble && wantNoRowDouble) ? getRowTreatments(r) : new Set();
+      const colSoft = (!enforceNoColDouble && wantNoColDouble) ? getColTreatments(c) : new Set();
+
+      const preferred = [], fallback = [];
+      for (let t = 1; t <= treatments; t++) {
+        if (design === 'crd' && counts[t] >= replications) continue;
+        if (usedInRep.has(t) || neighborTs.has(t) || rowTs.has(t) || colTs.has(t)) continue;
+        if (rowSoft.has(t) || colSoft.has(t)) fallback.push(t);
+        else preferred.push(t);
+      }
+      const shuffled = [...shuffle(preferred), ...shuffle(fallback)];
+
+      for (const t of shuffled) {
+        const replication = design === 'crd' ? counts[t] + 1 : repIdx + 1;
+        grid[r][c] = { treatment: t, replication, plotNum: pathIdx + 1 };
+        counts[t]++;
+        if (assign(pathIdx + 1)) return true;
+        grid[r][c] = null;
+        counts[t]--;
+        backtracks++;
+      }
+      return false;
+    }
+
+    return assign(1) ? grid : null;
+  }
+
+  function scoreScheme(grid) {
+    const positions = {};
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (!grid[r][c]) continue;
+        const t = grid[r][c].treatment;
+        if (!positions[t]) positions[t] = [];
+        positions[t].push([r, c]);
+      }
+    }
+    let score = 0;
+    for (let t = 1; t <= treatments; t++) {
+      const pos = positions[t] || [];
+      if (pos.length < 2) continue;
+      for (let i = 0; i < pos.length; i++) {
+        for (let j = i + 1; j < pos.length; j++) {
+          score += Math.abs(pos[i][0] - pos[j][0]) + Math.abs(pos[i][1] - pos[j][1]);
+        }
+      }
+    }
+    // Penalità dominante per i doppi indesiderati: tra i candidati validi
+    // vince sempre quello con meno doppi; la distribuzione spaziale fa da spareggio
+    const m = computeMetrics(grid, treatments);
+    const doubles = (wantNoRowDouble ? m.sameRowCount : 0) + (wantNoColDouble ? m.sameColCount : 0);
+    return score - 100000 * doubles;
+  }
+
+  // Esegue una serie di generazioni con i vincoli dati e tiene la migliore.
+  // Se dopo 80 prove non c'è nulla di valido, il vincolo è quasi certamente impossibile.
+  function runAttempt(row, col) {
+    let grid = null, score = -Infinity, validFound = 0;
+    for (let i = 0; i < (validFound > 0 ? 200 : 80) && validFound < 60; i++) {
+      const g = tryOneScheme(row, col);
+      if (g) {
+        validFound++;
+        const sc = scoreScheme(g);
+        if (sc > score) { score = sc; grid = g; }
+      }
+    }
+    return { grid, score, validFound, row, col };
+  }
+
+  // 1) Tentativo con tutti i vincoli desiderati come rigidi
+  let best = runAttempt(wantNoRowDouble, wantNoColDouble);
+
+  // 2) Se impossibile: modalità soft su entrambi gli assi. Lo spazio di ricerca
+  //    include ogni alternativa parziale, la preferenza nel backtracking e la
+  //    penalità nel punteggio spingono verso il minimo di doppi totali.
+  if (!best.grid && design !== 'latin' && (wantNoRowDouble || wantNoColDouble)) {
+    best = runAttempt(false, false);
+  }
+
+  if (!best.grid) {
+    return showError(design === 'latin'
+      ? (treatments < 5 ? 'Con meno di 5 tesi non esiste un quadrato latino che eviti le adiacenze diagonali: servono almeno 5 tesi.' : 'Impossibile generare un quadrato latino con questi valori evitando le adiacenze.')
+      : 'Impossibile generare uno schema valido, nemmeno rilassando i vincoli su righe e colonne. Prova a cambiare dimensioni, numero di tesi o repliche.');
+  }
+
+  const bestGrid = best.grid, validFound = best.validFound;
+  const enforceNoRowDouble = best.row, enforceNoColDouble = best.col;
+  const relaxedRow = wantNoRowDouble && !enforceNoRowDouble;
+  const relaxedCol = wantNoColDouble && !enforceNoColDouble;
+
+  state.scheme = {
+    grid: bestGrid, rows, cols, treatments, replications, design,
+    direction: state.direction,
+    metrics: computeMetrics(bestGrid, treatments),
+    validFound, bufferCells, enforceNoRowDouble, enforceNoColDouble,
+    relaxedRow, relaxedCol,
+    excluded
+  };
+
+  renderScheme();
+  closeForm();
+}
+
+function showError(msg) {
+  const el = document.getElementById('error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+// ============== RENDER ==============
+function renderScheme() {
+  const s = state.scheme;
+  if (!s) return;
+
+  // Nasconde l'intro, mostra la mappa
+  document.getElementById('intro').style.display = 'none';
+  document.getElementById('result').style.display = 'block';
+  document.getElementById('map-label').textContent =
+    `${designInfo[s.design].nome} · ${s.rows}×${s.cols} · ${s.treatments} tesi · ${s.replications} repliche`;
+  document.getElementById('action-bar').classList.add('show');
+  document.getElementById('gen-btn-label').textContent = 'Ri-randomizza';
+
+  // Didascalia per la stampa: identifica il foglio
+  const oggi = new Date().toLocaleDateString('it-IT');
+  document.getElementById('print-caption').textContent =
+    `${designInfo[s.design].nome} · ${s.rows}×${s.cols} · ${s.treatments} tesi · ${s.replications} rep` +
+    (s.excluded.size > 0 ? ` · ${s.excluded.size} escluse` : '') +
+    ` · num. ${state.numbering === 'arm' ? '101/201' : '1·2·3'}` +
+    (s.edited ? ' · modificato' : '') + ` · ${oggi}`;
+
+  // Griglia campo
+  const fieldEl = document.getElementById('field');
+  fieldEl.innerHTML = '';
+  fieldEl.classList.toggle('editing', state.editMode);
+  fieldEl.classList.toggle('arm-num', state.numbering === 'arm');
+  const minCell = s.cols > 6 ? '52px' : '0';
+  const colTpl = `auto repeat(${s.cols}, minmax(${minCell}, 1fr))`;
+
+  // Header colonne
+  const headerRow = document.createElement('div');
+  headerRow.className = 'field-row';
+  headerRow.style.gridTemplateColumns = colTpl;
+  const corner = document.createElement('div');
+  corner.style.width = '22px';
+  headerRow.appendChild(corner);
+  for (let c = 0; c < s.cols; c++) {
+    const lbl = document.createElement('div');
+    lbl.className = 'col-label';
+    lbl.textContent = `C${c+1}`;
+    headerRow.appendChild(lbl);
+  }
+  fieldEl.appendChild(headerRow);
+
+  // Righe
+  s.grid.forEach((row, rIdx) => {
+    const logical = s.rows - 1 - rIdx;
+    const rowEl = document.createElement('div');
+    rowEl.className = 'field-row';
+    rowEl.style.gridTemplateColumns = colTpl;
+
+    const rowLabel = document.createElement('div');
+    rowLabel.className = 'row-label';
+    rowLabel.textContent = `R${logical + 1}`;
+    rowEl.appendChild(rowLabel);
+
+    row.forEach((cell, cIdx) => {
+      const cellEl = document.createElement('div');
+      cellEl.dataset.r = rIdx;
+      cellEl.dataset.c = cIdx;
+      if (!cell) {
+        const isExcluded = s.excluded && s.excluded.has(exclKey(rIdx, cIdx));
+        if (isExcluded) cellEl.dataset.excl = '1';
+        cellEl.className = isExcluded ? 'cell excluded' : 'cell empty';
+        const span = document.createElement('span');
+        span.textContent = isExcluded ? '✕ escl.' : 'bordo';
+        cellEl.appendChild(span);
+      } else {
+        cellEl.dataset.has = '1';
+        const color = palette[(cell.treatment - 1) % palette.length];
+        const isFixed = cell.plotNum === 1;
+        cellEl.className = 'cell' + (isFixed ? ' fixed' : '');
+        cellEl.style.backgroundColor = color.bg;
+        cellEl.style.color = color.fg;
+        if (!isFixed) cellEl.style.borderColor = color.fg;
+
+        const plotNum = document.createElement('div');
+        plotNum.className = 'plot-num';
+        plotNum.textContent = displayNum(cell);
+        cellEl.appendChild(plotNum);
+
+        if (isFixed) {
+          const star = document.createElement('div');
+          star.className = 'star';
+          star.textContent = '★';
+          cellEl.appendChild(star);
+        }
+
+        const content = document.createElement('div');
+        content.className = 'cell-content';
+        const tesiSpan = document.createElement('span');
+        tesiSpan.className = 'tesi';
+        tesiSpan.textContent = cell.treatment;
+        const repSpan = document.createElement('span');
+        repSpan.className = 'rep';
+        repSpan.textContent = toRoman(cell.replication);
+        content.appendChild(tesiSpan);
+        content.appendChild(repSpan);
+        cellEl.appendChild(content);
+
+        // Trascinamento (attivo solo in modalità sposta)
+        cellEl.addEventListener('pointerdown', e => startDrag(e, rIdx, cIdx, cellEl));
+        cellEl.addEventListener('pointermove', moveDrag);
+        cellEl.addEventListener('pointerup', endDrag);
+        cellEl.addEventListener('pointercancel', endDrag);
+      }
+      rowEl.appendChild(cellEl);
+    });
+
+    fieldEl.appendChild(rowEl);
+  });
+
+  renderMetrics();
+  renderLegend();
+}
+
+function renderMetrics() {
+  const s = state.scheme;
+  const el = document.getElementById('metrics-content');
+
+  const colNote = s.design === 'crd' ? 'non richiesto' : (s.enforceNoColDouble
+    ? (s.metrics.sameColCount === 0 ? 'ottimo' : '—')
+    : (s.relaxedCol ? 'minimo trovato' : 'inevitabili'));
+  const rowNote = s.design === 'crd' ? 'non richiesto' : (s.enforceNoRowDouble
+    ? (s.metrics.sameRowCount === 0 ? 'ottimo' : '—')
+    : (s.relaxedRow ? 'minimo trovato' : 'inevitabili'));
+
+  let html = `
+    <div class="metrics-grid">
+      <div>
+        <div class="metric-label">Adiacenze</div>
+        <div class="metric-value${s.metrics.adjCount === 0 ? ' good' : ''}">${s.metrics.adjCount}${s.metrics.adjCount === 0 ? '<span class="check-mark">✓</span>' : ''}</div>
+        <div class="metric-note">8-vicini</div>
+      </div>
+      <div>
+        <div class="metric-label">Doppi in colonna</div>
+        <div class="metric-value${s.metrics.sameColCount === 0 ? ' good' : ''}">${s.metrics.sameColCount}${s.metrics.sameColCount === 0 ? '<span class="check-mark">✓</span>' : ''}</div>
+        <div class="metric-note">${colNote}</div>
+      </div>
+      <div>
+        <div class="metric-label">Doppi in riga</div>
+        <div class="metric-value${s.metrics.sameRowCount === 0 ? ' good' : ''}">${s.metrics.sameRowCount}${s.metrics.sameRowCount === 0 ? '<span class="check-mark">✓</span>' : ''}</div>
+        <div class="metric-note">${rowNote}</div>
+      </div>
+    </div>
+  `;
+
+  if (s.bufferCells > 0) {
+    html += `<div class="buffer-notice"><strong>${s.bufferCells} celle</strong> di bordo non assegnate</div>`;
+  }
+  if (s.excluded.size > 0) {
+    html += `<div class="buffer-notice"><strong>${s.excluded.size} celle</strong> escluse dallo schema (campo irregolare)</div>`;
+  }
+
+  if (s.relaxedRow || s.relaxedCol) {
+    const quale = s.relaxedRow && s.relaxedCol ? 'riga e colonna'
+      : (s.relaxedRow ? 'riga' : 'colonna');
+    html += `<div class="buffer-notice">Con questa geometria non era possibile evitare tutti i doppi in ${quale}: sono stati <strong>ridotti al minimo</strong>.</div>`;
+  }
+
+  if (s.edited) {
+    html += `<div class="buffer-notice">Schema <strong>modificato a mano</strong>: numerazione e metriche ricalcolate dopo gli spostamenti.</div>`;
+  }
+
+  // Stato reale di #1 (dopo spostamenti manuali può cambiare)
+  let firstCell = null;
+  for (const row of s.grid) for (const cell of row) if (cell && cell.plotNum === 1) firstCell = cell;
+  const firstOk = firstCell && firstCell.treatment === 1 && firstCell.replication === 1;
+
+  const problemi = [];
+  if (!firstOk) problemi.push('○ La partenza ⊕ non è più tesi 1 · replica I');
+  if (s.metrics.adjCount > 0) problemi.push(`○ ${s.metrics.adjCount} coppie di stessa tesi in celle confinanti`);
+  html += `<div class="checks-list">${
+    problemi.length ? problemi.map(p => `<div>${p}</div>`).join('')
+                    : '<div>✓ Partenza e adiacenze rispettate</div>'
+  }</div>`;
+  el.innerHTML = html;
+}
+
+function renderLegend() {
+  const s = state.scheme;
+  document.getElementById('legend-title').textContent = `Legenda · ${s.treatments} tesi`;
+  const el = document.getElementById('legend-content');
+  let html = '<div class="legend-grid">';
+  for (let i = 0; i < s.treatments; i++) {
+    const c = palette[i % palette.length];
+    html += `
+      <div class="legend-item">
+        <div class="legend-swatch" style="background:${c.bg};color:${c.fg};border-color:${c.fg};">${i+1}</div>
+        <div class="legend-text">T${i+1}${c.name ? '<span class="legend-sub">'+c.name+'</span>' : ''}</div>
+      </div>
+    `;
+  }
+  html += '</div>';
+  html += '<div class="reps-list">';
+  for (let i = 0; i < s.replications; i++) {
+    html += `<span class="rep-chip">${toRoman(i+1)}</span>`;
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ============== MODALITÀ SPOSTA ==============
+function toggleEditMode() {
+  if (!state.scheme) return;
+  state.editMode = !state.editMode;
+  document.getElementById('edit-toggle').classList.toggle('active', state.editMode);
+  document.getElementById('edit-hint').style.display = state.editMode ? 'block' : 'none';
+  document.getElementById('field').classList.toggle('editing', state.editMode);
+}
+
+let dragCtx = null;
+
+function startDrag(e, r, c, cellEl) {
+  if (!state.editMode || !state.scheme) return;
+  if (!state.scheme.grid[r][c]) return;
+  e.preventDefault();
+  if (cellEl.setPointerCapture) {
+    try { cellEl.setPointerCapture(e.pointerId); } catch (err) { /* non critico */ }
+  }
+  dragCtx = { r, c, el: cellEl, ghost: null, target: null };
+}
+
+function moveDrag(e) {
+  if (!dragCtx) return;
+  // Ghost creato al primo movimento reale (così un tap non lo genera)
+  if (!dragCtx.ghost) {
+    const rect = dragCtx.el.getBoundingClientRect();
+    const g = dragCtx.el.cloneNode(true);
+    g.classList.add('drag-ghost');
+    g.style.width = rect.width + 'px';
+    g.style.height = rect.height + 'px';
+    document.body.appendChild(g);
+    dragCtx.ghost = g;
+    dragCtx.el.classList.add('drag-src');
+  }
+  dragCtx.ghost.style.left = (e.clientX - dragCtx.ghost.offsetWidth / 2) + 'px';
+  dragCtx.ghost.style.top = (e.clientY - dragCtx.ghost.offsetHeight / 2) + 'px';
+
+  // Cella sotto il dito (il ghost ha pointer-events: none)
+  const under = document.elementFromPoint(e.clientX, e.clientY);
+  const cell = under && under.closest ? under.closest('.cell') : null;
+  if (dragCtx.target && dragCtx.target !== cell) {
+    dragCtx.target.classList.remove('drop-hint');
+    dragCtx.target = null;
+  }
+  // Destinazione valida: qualsiasi cella non esclusa diversa dall'origine
+  if (cell && cell.dataset.r !== undefined && cell.dataset.excl !== '1' && cell !== dragCtx.el) {
+    cell.classList.add('drop-hint');
+    dragCtx.target = cell;
+  }
+}
+
+function endDrag() {
+  if (!dragCtx) return;
+  const ctx = dragCtx;
+  dragCtx = null;
+  if (ctx.ghost) ctx.ghost.remove();
+  ctx.el.classList.remove('drag-src');
+  if (ctx.target) {
+    ctx.target.classList.remove('drop-hint');
+    applyMove(ctx.r, ctx.c, parseInt(ctx.target.dataset.r, 10), parseInt(ctx.target.dataset.c, 10));
+  }
+}
+
+// Scambio (se destinazione occupata) o spostamento (se bordo vuoto)
+function applyMove(sr, sc, dr, dc) {
+  const s = state.scheme;
+  if (!s || (sr === dr && sc === dc)) return;
+  if (s.excluded.has(exclKey(dr, dc))) return;
+  const tmp = s.grid[dr][dc];
+  s.grid[dr][dc] = s.grid[sr][sc];
+  s.grid[sr][sc] = tmp || null;
+  renumberPlots();
+  s.metrics = computeMetrics(s.grid, s.treatments);
+  s.edited = true;
+  renderScheme();
+}
+
+// Rinumera le parcelle seguendo la serpentina sulle sole celle assegnate:
+// il percorso GPS resta coerente anche dopo gli spostamenti.
+// (La numerazione ARM non serve rinumerarla: è derivata da replica e tesi.)
+function renumberPlots() {
+  const s = state.scheme;
+  const path = buildSnakePath(s.rows, s.cols, s.direction)
+    .filter(([r, c]) => !s.excluded.has(exclKey(r, c)));
+  let n = 1;
+  for (const [r, c] of path) {
+    if (s.grid[r][c]) s.grid[r][c].plotNum = n++;
+  }
+}
+
+function setNumbering(mode) {
+  state.numbering = mode;
+  document.getElementById('num-seq').classList.toggle('active', mode === 'seq');
+  document.getElementById('num-arm').classList.toggle('active', mode === 'arm');
+  if (state.scheme) {
+    renumberPlots(); // garantisce armNum anche su schemi già generati
+    renderScheme();
+  }
+}
+
+// Numero mostrato secondo la modalità scelta.
+// ARM: replica×100 + tesi (es. 101 = tesi 1 replica I, 308 = tesi 8 replica III),
+// derivato direttamente dalla cella: resta coerente anche dopo gli spostamenti.
+function displayNum(cell) {
+  return state.numbering === 'arm'
+    ? cell.replication * 100 + cell.treatment
+    : cell.plotNum;
+}
+
+// ============== UI ACTIONS ==============
+function openForm() {
+  document.getElementById('form-section').style.display = 'block';
+  document.getElementById('close-form-btn').style.display = state.scheme ? 'block' : 'none';
+}
+
+function closeForm() {
+  if (!state.scheme) return; // non chiudere se non c'è ancora uno schema
+  document.getElementById('form-section').style.display = 'none';
+}
+
+function toggleCollapse(name) {
+  const content = document.getElementById(name + '-content');
+  const chev = document.getElementById(name + '-chev');
+  content.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+
+function updateCheck() {
+  const rows = getInt('rows', 4);
+  const cols = getInt('cols', 6);
+  const tesi = getInt('tesi', 6);
+  const reps = getInt('reps', 4);
+  pruneExcluded(rows, cols);
+  renderMiniGrid(rows, cols);
+  const excl = state.excluded.size;
+  const total = rows * cols;
+  const available = total - excl;
+  const used = tesi * reps;
+  const buffer = available - used;
+  const ok = available >= used;
+  const eq = available === used ? '=' : (available > used ? '>' : '<');
+
+  const el = document.getElementById('check');
+  if (state.design === 'latin' && !(rows === cols && cols === tesi && tesi === reps)) {
+    el.className = 'check bad';
+    el.innerHTML = `quadrato latino: servono righe = colonne = tesi = repliche<br><span style="color:#A04030;">✗ ora ${rows}×${cols}, ${tesi} tesi, ${reps} rep</span>`;
+    return;
+  }
+  el.className = 'check ' + (ok ? 'ok' : 'bad');
+  let html = `${rows}×${cols}=${total}`;
+  if (excl > 0) html += ` − ${excl}✕ = ${available}`;
+  html += ` ${eq} ${tesi}×${reps}=${used}`;
+  if (ok && buffer > 0) html += `<br>↳ ${buffer} celle bordo`;
+  if (!ok) html += `<br><span style="color:#A04030;">✗ campo troppo piccolo</span>`;
+  el.innerHTML = html;
+}
+
+function exportCSV() {
+  const s = state.scheme;
+  if (!s) return;
+  let csv = 'Parcella;Riga(da_basso);Colonna;Tesi;Replica\n';
+  const totalRows = s.grid.length;
+  s.grid.forEach((row, rIdx) => {
+    const logicalRow = totalRows - rIdx;
+    row.forEach((cell, cIdx) => {
+      if (!cell) return;
+      csv += `${displayNum(cell)};${logicalRow};${cIdx+1};${cell.treatment};${toRoman(cell.replication)}\n`;
+    });
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `schema_blocchi_${s.rows}x${s.cols}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ============== EXPORT IMMAGINE ==============
+// Disegna la mappa su canvas ad alta risoluzione (2x), fedele alla vista a schermo
+function renderMapCanvas(s) {
+  const SCALE = 2;
+  const cell = 110, gap = 4;
+  const left = 50, capH = 42, colLabH = 26, gpsH = 10;
+  const gridW = s.cols * (cell + gap) - gap;
+  const gridH = s.rows * (cell + gap) - gap;
+  const w = left + gridW + 16;
+  const h = capH + colLabH + gridH + gpsH + 12;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = w * SCALE;
+  canvas.height = h * SCALE;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(SCALE, SCALE);
+
+  const MONO = "'IBM Plex Mono', monospace";
+  const SERIF = "'Fraunces', Georgia, serif";
+
+  // sfondo
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, w, h);
+
+  // didascalia
+  const oggi = new Date().toLocaleDateString('it-IT');
+  ctx.fillStyle = '#3D2F1F';
+  ctx.font = `500 15px ${MONO}`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(
+    `${designInfo[s.design].nome} · ${s.rows}×${s.cols} · ${s.treatments} tesi · ${s.replications} rep` +
+    (s.excluded.size > 0 ? ` · ${s.excluded.size} escluse` : '') +
+    (s.edited ? ' · modificato' : '') + ` · ${oggi}`, 8, 26);
+  ctx.strokeStyle = '#3D2F1F';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(8, capH - 8); ctx.lineTo(w - 8, capH - 8); ctx.stroke();
+
+  // etichette colonne
+  ctx.fillStyle = '#7D6B5C';
+  ctx.font = `12px ${MONO}`;
+  ctx.textAlign = 'center';
+  for (let c = 0; c < s.cols; c++) {
+    ctx.fillText(`C${c + 1}`, left + c * (cell + gap) + cell / 2, capH + 17);
+  }
+
+  const y0 = capH + colLabH;
+  s.grid.forEach((row, rIdx) => {
+    const y = y0 + rIdx * (cell + gap);
+
+    // etichetta riga (dal basso)
+    ctx.fillStyle = '#7D6B5C';
+    ctx.font = `12px ${MONO}`;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`R${s.rows - rIdx}`, left - 8, y + cell / 2);
+
+    row.forEach((cellData, cIdx) => {
+      const x = left + cIdx * (cell + gap);
+      const isExcluded = s.excluded.has(exclKey(rIdx, cIdx));
+
+      if (!cellData && isExcluded) {
+        // esclusa: tratteggio diagonale
+        ctx.fillStyle = '#E8E0D2';
+        ctx.fillRect(x, y, cell, cell);
+        ctx.save();
+        ctx.beginPath(); ctx.rect(x, y, cell, cell); ctx.clip();
+        ctx.strokeStyle = '#D9CDB9';
+        ctx.lineWidth = 5;
+        for (let d = -cell; d < cell * 2; d += 12) {
+          ctx.beginPath();
+          ctx.moveTo(x + d, y + cell);
+          ctx.lineTo(x + d + cell, y);
+          ctx.stroke();
+        }
+        ctx.restore();
+        ctx.strokeStyle = '#C8BAA0';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x + 1, y + 1, cell - 2, cell - 2);
+        ctx.fillStyle = '#A08868';
+        ctx.font = `18px ${MONO}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('✕', x + cell / 2, y + cell / 2);
+      } else if (!cellData) {
+        // bordo: tratteggio del contorno
+        ctx.fillStyle = '#F0EBE0';
+        ctx.fillRect(x, y, cell, cell);
+        ctx.strokeStyle = '#C8BAA0';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 4]);
+        ctx.strokeRect(x + 1, y + 1, cell - 2, cell - 2);
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#A89578';
+        ctx.font = `12px ${MONO}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('bordo', x + cell / 2, y + cell / 2);
+      } else {
+        const color = palette[(cellData.treatment - 1) % palette.length];
+        const isFixed = cellData.plotNum === 1;
+        ctx.fillStyle = color.bg;
+        ctx.fillRect(x, y, cell, cell);
+        ctx.strokeStyle = isFixed ? '#3D2F1F' : color.fg;
+        ctx.lineWidth = isFixed ? 5 : 2.5;
+        ctx.strokeRect(x + ctx.lineWidth / 2, y + ctx.lineWidth / 2, cell - ctx.lineWidth, cell - ctx.lineWidth);
+
+        // numero parcella
+        ctx.fillStyle = color.fg;
+        ctx.globalAlpha = state.numbering === 'arm' ? 0.95 : 0.65;
+        ctx.font = `${state.numbering === 'arm' ? '500 17px' : '15px'} ${MONO}`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+        ctx.fillText(displayNum(cellData), x + 7, y + 21);
+        ctx.globalAlpha = 1;
+
+        // stella sulla partenza
+        if (isFixed) {
+          ctx.fillStyle = '#3D2F1F';
+          ctx.font = `16px ${SERIF}`;
+          ctx.textAlign = 'right';
+          ctx.fillText('★', x + cell - 7, y + 22);
+        }
+
+        // tesi grande + replica romana
+        ctx.textBaseline = 'alphabetic';
+        ctx.font = `700 46px ${SERIF}`;
+        const tesiTxt = String(cellData.treatment);
+        const tW = ctx.measureText(tesiTxt).width;
+        ctx.font = `500 19px ${SERIF}`;
+        const repTxt = toRoman(cellData.replication);
+        const rW = ctx.measureText(repTxt).width;
+        const startX = x + (cell - (tW + 3 + rW)) / 2;
+        const baseY = y + cell / 2 + 20;
+        ctx.textAlign = 'left';
+        ctx.font = `700 46px ${SERIF}`;
+        ctx.fillStyle = color.fg;
+        ctx.fillText(tesiTxt, startX, baseY);
+        ctx.font = `500 19px ${SERIF}`;
+        ctx.globalAlpha = 0.85;
+        ctx.fillText(repTxt, startX + tW + 3, baseY);
+        ctx.globalAlpha = 1;
+      }
+    });
+  });
+
+  return canvas;
+}
+
+// Condivide l'immagine (foglio di condivisione del telefono) o la scarica
+async function exportImage() {
+  const s = state.scheme;
+  if (!s) return;
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch (e) { /* font di sistema */ }
+  }
+  const canvas = renderMapCanvas(s);
+  canvas.toBlob(async blob => {
+    if (!blob) return;
+    const nome = `schema_campo_${s.rows}x${s.cols}.png`;
+    const file = new File([blob], nome, { type: 'image/png' });
+    // Su mobile: foglio di condivisione (salva in galleria, WhatsApp, email…)
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: 'Schema di campo' });
+        return;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return; // annullato dall'utente
+        // altrimenti prosegue col download
+      }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nome;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, 'image/png');
+}
+
+// ============== INIT ==============
+setupNumericInput('rows', 4);
+setupNumericInput('cols', 6);
+setupNumericInput('tesi', 6);
+setupNumericInput('reps', 4);
+updateCheck();
+
+// PWA: registra il service worker (percorso relativo alla radice del sito)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('../sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
