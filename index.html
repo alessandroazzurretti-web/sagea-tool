@@ -111,6 +111,11 @@
     cursor: pointer;
   }
   .install-link:active { background: #5C4D3E; }
+  .credits {
+    margin-top: 8px;
+    font-size: 10px; letter-spacing: 0.1em;
+    color: #A89578;
+  }
   .offline-note { font-size: 11px; color: #5C7A4A; margin-bottom: 6px; }
   .version {
     font-size: 9px;
@@ -153,7 +158,7 @@
       <path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>
     </svg>
     <div>
-      <h1>Strumenti per la sperimentazione in campo</h1>
+      <h1>Strumenti in campo</h1>
     </div>
   </header>
 
@@ -172,7 +177,7 @@
       <span style="background:#A8C8C0;border-color:#1F3D38;"></span>
     </div>
     <div class="tool-text">
-      <div class="tool-title">Schema a Blocchi</div>
+      <div class="tool-title">Schemi a Blocchi</div>
       <div class="tool-desc">Disegni RCB, CRD e quadrato latino · mappa di campo · export immagine</div>
     </div>
     <div class="tool-arrow">›</div>
@@ -180,7 +185,7 @@
 
   <a class="tool-card" href="calcolo-dosi.html">
     <svg class="tool-icon" viewBox="0 0 48 48" fill="none" stroke-linejoin="round">
-     
+      <!-- beuta piena: vetro chiaro, livello miscela verde, goccia -->
       <path d="M15 5 h14 v6 l10 22 a4 4 0 0 1 -3.6 5.6 h-26.8 a4 4 0 0 1 -3.6 -5.6 l10 -22 z" fill="#EAF1E2" stroke="#3D2F1F" stroke-width="2"/>
       <path d="M9.5 27 h25 l4.9 8.6 a4 4 0 0 1 -3.6 5.4 h-26.8 a4 4 0 0 1 -3.6 -5.4 z" fill="#5C7A4A" stroke="#3D2F1F" stroke-width="2"/>
       <rect x="13" y="3" width="18" height="4" rx="1" fill="#3D2F1F"/>
@@ -195,7 +200,7 @@
 
   <a class="tool-card" href="taratura.html">
     <svg class="tool-icon" viewBox="0 0 48 48" fill="none" stroke-linejoin="round">
-      
+      <!-- ugello pieno con getto verde e gocce -->
       <rect x="17" y="3" width="10" height="7" rx="1.5" fill="#3D2F1F"/>
       <path d="M13 10 h18 l-3 8 a9 9 0 0 1 -12 0 z" fill="#F0DC8C" stroke="#3D2F1F" stroke-width="2"/>
       <path d="M22 19 l-9 24 h18 z" fill="#B8D4A8" stroke="#3D2F1F" stroke-width="2"/>
@@ -205,7 +210,7 @@
     </svg>
     <div class="tool-text">
       <div class="tool-title">Taratura Irroratrice</div>
-      <div class="tool-desc">Erogato ugelli, media, portata, controllo conformità ±5%</div>
+      <div class="tool-desc">Erogato ugelli su 3 run, media D, portata, controllo conformità ±5%</div>
     </div>
     <div class="tool-arrow">›</div>
   </a>
@@ -214,6 +219,7 @@
 
 <footer>
   <button id="install-link" class="install-link" style="display:none;" onclick="installaApp()">📲 Installa l'app</button>
+  <div class="credits">Developed by AA</div>
 </footer>
 
 <script>

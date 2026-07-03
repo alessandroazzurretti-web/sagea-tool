@@ -15,7 +15,7 @@ Apri il sito nel browser del telefono, poi:
 ### Android (Chrome)
 1. Tocca il menu **⋮** in alto a destra.
 2. Scegli **"Installa app"** (oppure "Aggiungi a schermata Home").
-3. Conferma: l'icona SAGEA compare tra le app.
+3. Conferma: l'icona compare tra le app.
 
 In alternativa, tocca il pulsante **📲 Installa l'app** in fondo alla schermata iniziale.
 
