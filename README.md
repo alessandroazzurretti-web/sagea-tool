@@ -1,4 +1,4 @@
-# SAGEA Tool
+# Strumenti in campo
 
 App per la sperimentazione agronomica in campo. Funziona come un'app: si installa sulla schermata Home e funziona anche **senza connessione**.
 
