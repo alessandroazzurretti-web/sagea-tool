@@ -25,11 +25,13 @@
   .container { max-width: 720px; margin: 0 auto; }
 
   header { border-bottom: 2px solid #3D2F1F; padding-bottom: 12px; margin-bottom: 16px; }
-  .back-link {
-    display: inline-block;
-    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
-    color: #7D6B5C; text-decoration: none; margin-bottom: 6px;
+  .back-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; flex-shrink: 0;
+    border: 1px solid #3D2F1F; background: #FFF; color: #3D2F1F;
+    text-decoration: none;
   }
+  .back-btn:active { background: #3D2F1F; color: #F5F1EA; }
   .header-row { display: flex; align-items: center; gap: 10px; }
   .leaf { width: 28px; height: 28px; flex-shrink: 0; color: #5C7A4A; }
   h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 22px; }
@@ -188,8 +190,10 @@
 <div class="container">
 
   <header>
-    <a href="index.html" class="back-link">‹ SAGEA</a>
     <div class="header-row">
+      <a href="index.html" class="back-btn" aria-label="Torna alla home">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </a>
       <svg class="leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>
       </svg>
