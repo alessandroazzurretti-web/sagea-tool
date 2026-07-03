@@ -1,13 +1,13 @@
 // SAGEA Tool · service worker
-const CACHE = 'sagea-v1';
+const CACHE = 'sagea-v2';
 const ASSETS = [
   './',
   './index.html',
-  './tools/schemi-blocchi.html',
+  './schemi-blocchi.html',
   './manifest.webmanifest',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/icon-maskable-512.png'
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-512.png'
 ];
 
 self.addEventListener('install', e => {
