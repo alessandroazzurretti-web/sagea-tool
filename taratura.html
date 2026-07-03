@@ -109,6 +109,8 @@
     font-size: 12px; text-transform: uppercase; letter-spacing: 0.2em; cursor: pointer;
   }
   .btn-outline:active { background: #3D2F1F; color: #F5F1EA; }
+  .export-row { display: flex; gap: 8px; margin-top: 8px; }
+  .export-row .btn-outline { flex: 1; margin-top: 0; }
   .reset-link { display: block; margin: 16px auto 0; background: none; border: none; font-size: 10px; color: #7D6B5C; cursor: pointer; text-decoration: underline; }
 
   .anteprima { margin-top: 12px; }
@@ -181,7 +183,10 @@
     <div id="esito-box"></div>
   </section>
 
-  <button class="btn-outline" onclick="exportRiepilogo()">Salva / condividi</button>
+  <div class="export-row">
+    <button class="btn-outline" onclick="salvaImmagine()">Salva</button>
+    <button class="btn-outline" onclick="condividiImmagine()">Condividi</button>
+  </div>
   <div id="anteprima-box" class="anteprima">
     <span class="label" style="margin-top:16px;">Riepilogo</span>
     <img id="anteprima-img" alt="Riepilogo taratura">
@@ -502,19 +507,32 @@ function aggiornaAnteprima() {
   }, 250);
 }
 
-async function exportRiepilogo() {
+async function preparaCanvas() {
   if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
-  const canvas = renderRiepilogoCanvas();
+  return renderRiepilogoCanvas();
+}
+async function salvaImmagine() {
+  const canvas = await preparaCanvas();
+  canvas.toBlob(blob => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'taratura_irroratrice.png'; a.click();
+    URL.revokeObjectURL(url);
+  }, 'image/png');
+}
+async function condividiImmagine() {
+  const canvas = await preparaCanvas();
   canvas.toBlob(async blob => {
     if (!blob) return;
-    const nome = 'taratura_irroratrice.png';
-    const file = new File([blob], nome, { type: 'image/png' });
+    const file = new File([blob], 'taratura_irroratrice.png', { type: 'image/png' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try { await navigator.share({ files: [file], title: 'Taratura irroratrice' }); return; }
       catch (err) { if (err && err.name === 'AbortError') return; }
     }
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = nome; a.click();
+    const a = document.createElement('a');
+    a.href = url; a.download = 'taratura_irroratrice.png'; a.click();
     URL.revokeObjectURL(url);
   }, 'image/png');
 }

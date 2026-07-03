@@ -47,7 +47,7 @@
     background: #FFFFFF;
     border-top: 1px solid #D4C9B8;
     display: none;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 8px;
     padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
     z-index: 50;
@@ -434,7 +434,7 @@
   /* Metriche */
   .metrics-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 12px;
     margin-bottom: 12px;
   }
@@ -688,9 +688,10 @@
 </div>
 
 <nav id="action-bar" class="action-bar no-print">
-  <button onclick="openForm()"><span>Nuovo schema</span></button>
+  <button onclick="openForm()"><span>Nuovo</span></button>
   <button id="edit-toggle" onclick="toggleEditMode()"><span>Sposta</span></button>
-  <button onclick="exportImage()"><span>Salva / condividi</span></button>
+  <button onclick="salvaImmagine()"><span>Salva</span></button>
+  <button onclick="condividiImmagine()"><span>Condividi</span></button>
 </nav>
 
 <script>
@@ -1744,32 +1745,38 @@ function renderMapCanvas(s) {
 }
 
 // Condivide l'immagine (foglio di condivisione del telefono) o la scarica
-async function exportImage() {
+async function schemaCanvas() {
   const s = state.scheme;
-  if (!s) return;
-  if (document.fonts && document.fonts.ready) {
-    try { await document.fonts.ready; } catch (e) { /* font di sistema */ }
-  }
-  const canvas = renderMapCanvas(s);
-  canvas.toBlob(async blob => {
+  if (!s) return null;
+  if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
+  return { canvas: renderMapCanvas(s), nome: `schema_campo_${s.rows}x${s.cols}.png` };
+}
+// Salva: scarica sul dispositivo
+async function salvaImmagine() {
+  const r = await schemaCanvas();
+  if (!r) return;
+  r.canvas.toBlob(blob => {
     if (!blob) return;
-    const nome = `schema_campo_${s.rows}x${s.cols}.png`;
-    const file = new File([blob], nome, { type: 'image/png' });
-    // Su mobile: foglio di condivisione (salva in galleria, WhatsApp, email…)
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = r.nome; a.click();
+    URL.revokeObjectURL(url);
+  }, 'image/png');
+}
+// Condividi: WhatsApp, email…
+async function condividiImmagine() {
+  const r = await schemaCanvas();
+  if (!r) return;
+  r.canvas.toBlob(async blob => {
+    if (!blob) return;
+    const file = new File([blob], r.nome, { type: 'image/png' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({ files: [file], title: 'Schema di campo' });
-        return;
-      } catch (err) {
-        if (err && err.name === 'AbortError') return; // annullato dall'utente
-        // altrimenti prosegue col download
-      }
+      try { await navigator.share({ files: [file], title: 'Schema di campo' }); return; }
+      catch (err) { if (err && err.name === 'AbortError') return; }
     }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = nome;
-    a.click();
+    a.href = url; a.download = r.nome; a.click();
     URL.revokeObjectURL(url);
   }, 'image/png');
 }

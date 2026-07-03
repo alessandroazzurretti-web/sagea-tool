@@ -151,6 +151,8 @@
     cursor: pointer;
   }
   .btn-outline:active { background: #3D2F1F; color: #F5F1EA; }
+  .export-row { display: flex; gap: 8px; margin-top: 8px; }
+  .export-row .btn-outline { flex: 1; margin-top: 0; }
   .anteprima { margin-top: 12px; }
   .anteprima img {
     display: block; width: 100%;
@@ -251,7 +253,10 @@
   <div id="anteprima-box" class="anteprima">
     <span class="label" style="margin-top:16px;">Riepilogo</span>
     <img id="anteprima-img" alt="Riepilogo dosi e miscele">
-    <button class="btn-outline" onclick="exportRiepilogo()">Salva / condividi</button>
+    <div class="export-row">
+      <button class="btn-outline" onclick="salvaImmagine()">Salva</button>
+      <button class="btn-outline" onclick="condividiImmagine()">Condividi</button>
+    </div>
   </div>
 
   <button class="reset-link" onclick="resetAll()">azzera tutto</button>
@@ -705,22 +710,35 @@ function aggiornaAnteprima() {
   }, 250);
 }
 
-async function exportRiepilogo() {
-  if (document.fonts && document.fonts.ready) {
-    try { await document.fonts.ready; } catch (e) {}
-  }
-  const canvas = renderRiepilogoCanvas();
+async function preparaCanvas() {
+  if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
+  return renderRiepilogoCanvas();
+}
+// Salva: scarica il file sul dispositivo
+async function salvaImmagine() {
+  const canvas = await preparaCanvas();
+  canvas.toBlob(blob => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'dosi_miscele.png'; a.click();
+    URL.revokeObjectURL(url);
+  }, 'image/png');
+}
+// Condividi: apre il foglio di condivisione (WhatsApp, email...)
+async function condividiImmagine() {
+  const canvas = await preparaCanvas();
   canvas.toBlob(async blob => {
     if (!blob) return;
-    const nome = 'dosi_miscele.png';
-    const file = new File([blob], nome, { type: 'image/png' });
+    const file = new File([blob], 'dosi_miscele.png', { type: 'image/png' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try { await navigator.share({ files: [file], title: 'Dosi e miscele' }); return; }
       catch (err) { if (err && err.name === 'AbortError') return; }
     }
+    // ripiego: se la condivisione non è disponibile, scarica
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = nome; a.click();
+    a.href = url; a.download = 'dosi_miscele.png'; a.click();
     URL.revokeObjectURL(url);
   }, 'image/png');
 }
