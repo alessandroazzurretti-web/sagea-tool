@@ -629,7 +629,7 @@
       <div class="field-wrap">
         <div id="mini-grid" class="field"></div>
       </div>
-      <button type="button" id="mini-reset" class="mini-reset" onclick="resetExcluded()" style="display:none;">↺ ripristina tutte le celle</button>
+      <button type="button" id="mini-reset" class="mini-reset" onclick="resetExcluded()" style="display:none;">ripristina tutte le celle</button>
     </div>
 
     <div id="check" class="check ok"></div>
@@ -688,9 +688,9 @@
 </div>
 
 <nav id="action-bar" class="action-bar no-print">
-  <button onclick="openForm()"><span class="ab-icon">⚙</span><span>Nuovo schema</span></button>
-  <button id="edit-toggle" onclick="toggleEditMode()"><span class="ab-icon">✥</span><span>Sposta</span></button>
-  <button onclick="exportImage()"><span class="ab-icon">🖼</span><span>Salva / condividi</span></button>
+  <button onclick="openForm()"><span>Nuovo schema</span></button>
+  <button id="edit-toggle" onclick="toggleEditMode()"><span>Sposta</span></button>
+  <button onclick="exportImage()"><span>Salva / condividi</span></button>
 </nav>
 
 <script>
@@ -1473,12 +1473,12 @@ function applyResize() {
   if (rows < s.rows) {
     for (let r = 0; r < s.rows - rows; r++)
       for (let c = 0; c < s.cols; c++)
-        if (s.grid[r][c]) return showError(`Impossibile ridurre: la riga R${s.rows - r} contiene parcelle. Spostale prima con ✥.`);
+        if (s.grid[r][c]) return showError(`Impossibile ridurre: la riga R${s.rows - r} contiene parcelle. Spostale prima con "Sposta".`);
   }
   if (cols < s.cols) {
     for (let r = 0; r < s.rows; r++)
       for (let c = cols; c < s.cols; c++)
-        if (s.grid[r][c]) return showError(`Impossibile ridurre: la colonna C${cols + 1} o successive contengono parcelle. Spostale prima con ✥.`);
+        if (s.grid[r][c]) return showError(`Impossibile ridurre: la colonna C${cols + 1} o successive contengono parcelle. Spostale prima con "Sposta".`);
   }
 
   // le righe cambiano in alto → le coordinate visuali traslano di shift
