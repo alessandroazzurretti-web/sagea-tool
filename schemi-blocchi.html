@@ -453,7 +453,6 @@
     margin-bottom: 2px;
   }
   .metric-value.good { color: #3F6B2F; }
-  .metric-value .check-mark { font-size: 14px; margin-left: 4px; color: #5C7A4A; }
   .metric-note {
     font-size: 9px;
     font-style: italic;
@@ -505,14 +504,9 @@
     color: #5C4D3E;
   }
 
-  /* Lista vincoli */
-  .checks-list { margin-top: 12px; font-size: 10px; color: #7D6B5C; }
-  .checks-list div { margin-bottom: 2px; }
 
   /* Schermata iniziale */
-  .intro ul { list-style: none; padding-left: 0; }
-  .intro li { font-size: 12px; margin-bottom: 8px; padding-left: 14px; position: relative; }
-  .intro li::before { content: '•'; position: absolute; left: 2px; color: #5C7A4A; }
+  .intro-lines div { font-size: 12px; margin-bottom: 8px; }
 
   footer {
     margin-top: 24px;
@@ -683,12 +677,12 @@
   <!-- Schermata iniziale -->
   <div id="intro" class="card intro">
     <div class="label">Come funziona</div>
-    <ul style="margin-top:10px;">
-      <li>Disegni: <strong>RCB</strong>, <strong>CRD</strong>, <strong>Quadrato latino</strong></li>
-      <li>Mai la stessa tesi in <strong>celle confinanti</strong></li>
-      <li><strong>Doppi in riga e colonna</strong> evitati quando possibile</li>
-      <li>Campi irregolari: tocca le celle da <strong>escludere ✕</strong></li>
-    </ul>
+    <div class="intro-lines" style="margin-top:10px;">
+      <div>Disegni: <strong>RCB</strong>, <strong>CRD</strong>, <strong>Quadrato latino</strong></div>
+      <div>Mai la stessa tesi in <strong>celle confinanti</strong></div>
+      <div><strong>Doppi in riga e colonna</strong> evitati quando possibile</div>
+      <div>Campi irregolari: tocca le celle da <strong>escludere ✕</strong></div>
+    </div>
   </div>
 
 </div>
@@ -1277,17 +1271,17 @@ function renderMetrics() {
     <div class="metrics-grid">
       <div>
         <div class="metric-label">Adiacenze</div>
-        <div class="metric-value${s.metrics.adjCount === 0 ? ' good' : ''}">${s.metrics.adjCount}${s.metrics.adjCount === 0 ? '<span class="check-mark">✓</span>' : ''}</div>
+        <div class="metric-value${s.metrics.adjCount === 0 ? ' good' : ''}">${s.metrics.adjCount}</div>
         <div class="metric-note">8-vicini</div>
       </div>
       <div>
         <div class="metric-label">Doppi in colonna</div>
-        <div class="metric-value${s.metrics.sameColCount === 0 ? ' good' : ''}">${s.metrics.sameColCount}${s.metrics.sameColCount === 0 ? '<span class="check-mark">✓</span>' : ''}</div>
+        <div class="metric-value${s.metrics.sameColCount === 0 ? ' good' : ''}">${s.metrics.sameColCount}</div>
         <div class="metric-note">${colNote}</div>
       </div>
       <div>
         <div class="metric-label">Doppi in riga</div>
-        <div class="metric-value${s.metrics.sameRowCount === 0 ? ' good' : ''}">${s.metrics.sameRowCount}${s.metrics.sameRowCount === 0 ? '<span class="check-mark">✓</span>' : ''}</div>
+        <div class="metric-value${s.metrics.sameRowCount === 0 ? ' good' : ''}">${s.metrics.sameRowCount}</div>
         <div class="metric-note">${rowNote}</div>
       </div>
     </div>
@@ -1315,13 +1309,17 @@ function renderMetrics() {
   for (const row of s.grid) for (const cell of row) if (cell && cell.plotNum === 1) firstCell = cell;
   const firstOk = firstCell && firstCell.treatment === 1 && firstCell.replication === 1;
 
-  const problemi = [];
-  if (!firstOk) problemi.push('○ La partenza ⊕ non è più tesi 1 · replica I');
-  if (s.metrics.adjCount > 0) problemi.push(`○ ${s.metrics.adjCount} coppie di stessa tesi in celle confinanti`);
-  html += `<div class="checks-list">${
-    problemi.length ? problemi.map(p => `<div>${p}</div>`).join('')
-                    : '<div>✓ Partenza e adiacenze rispettate</div>'
-  }</div>`;
+  // stesse segnalazioni, stesso stile degli altri avvisi
+  if (!firstOk) {
+    html += `<div class="buffer-notice">La <strong>partenza ⊕</strong> non è più tesi 1 · replica I.</div>`;
+  }
+  if (s.metrics.adjCount > 0) {
+    const coppie = s.metrics.adjCount === 1 ? '1 coppia' : `${s.metrics.adjCount} coppie`;
+    html += `<div class="buffer-notice">${coppie} di <strong>stessa tesi in celle confinanti</strong>.</div>`;
+  }
+  if (firstOk && s.metrics.adjCount === 0) {
+    html += `<div class="buffer-notice">Partenza e adiacenze <strong>rispettate</strong>.</div>`;
+  }
   el.innerHTML = html;
 }
 
@@ -1563,15 +1561,15 @@ function updateCheck() {
   const el = document.getElementById('check');
   if (state.design === 'latin' && !(rows === cols && cols === tesi && tesi === reps)) {
     el.className = 'check bad';
-    el.innerHTML = `quadrato latino: servono righe = colonne = tesi = repliche<br><span style="color:#A04030;">✗ ora ${rows}×${cols}, ${tesi} tesi, ${reps} rep</span>`;
+    el.innerHTML = `quadrato latino: servono righe = colonne = tesi = repliche<br><span style="color:#A04030;">ora ${rows}×${cols}, ${tesi} tesi, ${reps} rep</span>`;
     return;
   }
   el.className = 'check ' + (ok ? 'ok' : 'bad');
   let html = `${rows}×${cols}=${total}`;
   if (excl > 0) html += ` − ${excl}✕ = ${available}`;
   html += ` ${eq} ${tesi}×${reps}=${used}`;
-  if (ok && buffer > 0) html += `<br>↳ ${buffer} celle bordo`;
-  if (!ok) html += `<br><span style="color:#A04030;">✗ campo troppo piccolo</span>`;
+  if (ok && buffer > 0) html += `<br>${buffer} celle bordo`;
+  if (!ok) html += `<br><span style="color:#A04030;">campo troppo piccolo</span>`;
   el.innerHTML = html;
 }
 
