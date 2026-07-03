@@ -639,6 +639,8 @@
 
     <div id="check" class="check ok"></div>
 
+    <button class="btn-secondary" id="resize-btn" onclick="applyResize()" style="display:none; width:100%; margin-top:8px; margin-bottom:8px;"></button>
+
     <button class="btn-primary" onclick="generate()">
       🔀 <span id="gen-btn-label">Genera schema</span>
     </button>
@@ -1454,6 +1456,65 @@ function displayNum(cell) {
     : cell.plotNum;
 }
 
+// ============== RIDIMENSIONA SCHEMA ==============
+// Allarga (o riduce) il campo dello schema attivo senza rigenerare:
+// le celle nuove nascono vuote (bordo) e le parcelle si possono spostare lì.
+// Le righe si aggiungono/tolgono in alto (R1 resta ancorata in basso).
+function applyResize() {
+  const s = state.scheme;
+  if (!s) return;
+  const rows = getInt('rows', s.rows);
+  const cols = getInt('cols', s.cols);
+  if (rows === s.rows && cols === s.cols) return;
+
+  const errEl = document.getElementById('error');
+  errEl.style.display = 'none';
+
+  // riduzione: le celle da eliminare devono essere vuote
+  if (rows < s.rows) {
+    for (let r = 0; r < s.rows - rows; r++)
+      for (let c = 0; c < s.cols; c++)
+        if (s.grid[r][c]) return showError(`Impossibile ridurre: la riga R${s.rows - r} contiene parcelle. Spostale prima con ✥.`);
+  }
+  if (cols < s.cols) {
+    for (let r = 0; r < s.rows; r++)
+      for (let c = cols; c < s.cols; c++)
+        if (s.grid[r][c]) return showError(`Impossibile ridurre: la colonna C${cols + 1} o successive contengono parcelle. Spostale prima con ✥.`);
+  }
+
+  // le righe cambiano in alto → le coordinate visuali traslano di shift
+  const shift = rows - s.rows;
+  const newExcl = new Set();
+  for (const key of s.excluded) {
+    const [r, c] = key.split(',').map(Number);
+    const nr = r + shift;
+    if (nr >= 0 && nr < rows && c < cols) newExcl.add(exclKey(nr, c));
+  }
+
+  const g = Array.from({ length: rows }, () => Array(cols).fill(null));
+  for (let r = 0; r < s.rows; r++) {
+    const nr = r + shift;
+    if (nr < 0 || nr >= rows) continue;
+    for (let c = 0; c < Math.min(cols, s.cols); c++) g[nr][c] = s.grid[r][c];
+  }
+
+  s.grid = g;
+  s.rows = rows;
+  s.cols = cols;
+  s.excluded = newExcl;
+  state.excluded = new Set(newExcl); // tengo allineata la mini-griglia del modulo
+
+  renumberPlots();
+  s.metrics = computeMetrics(s.grid, s.treatments);
+  let assegnate = 0;
+  for (const row of s.grid) for (const c of row) if (c) assegnate++;
+  s.bufferCells = rows * cols - newExcl.size - assegnate;
+
+  renderScheme();
+  updateCheck();
+  closeForm();
+}
+
 // ============== UI ACTIONS ==============
 function openForm() {
   document.getElementById('form-section').style.display = 'block';
@@ -1486,6 +1547,17 @@ function updateCheck() {
   const buffer = available - used;
   const ok = available >= used;
   const eq = available === used ? '=' : (available > used ? '>' : '<');
+
+  // ridimensionamento dello schema attivo (non per il quadrato latino)
+  const rb = document.getElementById('resize-btn');
+  const sc = state.scheme;
+  if (sc && sc.design !== 'latin' && state.design === sc.design &&
+      (rows !== sc.rows || cols !== sc.cols)) {
+    rb.style.display = 'block';
+    rb.textContent = `⇲ Ridimensiona a ${rows}×${cols} mantenendo lo schema`;
+  } else {
+    rb.style.display = 'none';
+  }
 
   const el = document.getElementById('check');
   if (state.design === 'latin' && !(rows === cols && cols === tesi && tesi === reps)) {

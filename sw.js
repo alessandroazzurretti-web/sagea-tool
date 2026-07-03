@@ -1,9 +1,10 @@
 // SAGEA Tool · service worker
-const CACHE = 'sagea-v3';
+const CACHE = 'sagea-v6';
 const ASSETS = [
   './',
   './index.html',
   './schemi-blocchi.html',
+  './calcolo-dosi.html',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',
