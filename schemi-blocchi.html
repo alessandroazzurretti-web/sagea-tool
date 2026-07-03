@@ -57,6 +57,7 @@
     margin: 0 auto;
   }
   .action-bar.show { display: grid; }
+  .action-bar button span:last-child { text-align: center; line-height: 1.3; }
   .action-bar button {
     border: 1px solid #D4C9B8;
     background: #FFF;
@@ -695,7 +696,7 @@
 <nav id="action-bar" class="action-bar no-print">
   <button onclick="openForm()"><span class="ab-icon">⚙</span><span>Nuovo schema</span></button>
   <button id="edit-toggle" onclick="toggleEditMode()"><span class="ab-icon">✥</span><span>Sposta</span></button>
-  <button onclick="exportImage()"><span class="ab-icon">🖼</span><span>Immagine</span></button>
+  <button onclick="exportImage()"><span class="ab-icon">🖼</span><span>Salva / condividi</span></button>
 </nav>
 
 <script>

@@ -114,10 +114,6 @@
     color: #7D6B5C; margin-bottom: 4px;
   }
   .qty-big { font-family: 'IBM Plex Mono', monospace; font-size: 16px; font-weight: 600; white-space: nowrap; }
-  .refluo-link {
-    display: block; margin: 10px auto 0; background: none; border: none;
-    font-size: 11px; color: #7D6B5C; cursor: pointer; text-decoration: underline;
-  }
   .res-water {
     display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
     font-family: 'IBM Plex Mono', monospace; font-size: 12px;
@@ -137,11 +133,6 @@
   .res-line .qty strong { font-size: 15px; }
   .res-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  /* Refluo */
-  .refluo { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12px; flex-wrap: wrap; }
-  .refluo input { width: 76px !important; padding: 6px 8px !important; font-size: 14px !important; text-align: right; }
-  .tag-ok { color: #3F6B2F; font-weight: 600; }
-  .tag-bad { color: #A04030; font-weight: 600; }
   .range { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #7D6B5C; }
 
   .btn-primary {
@@ -158,6 +149,16 @@
     cursor: pointer;
   }
   .btn-outline:active { background: #3D2F1F; color: #F5F1EA; }
+  .anteprima { margin-top: 12px; }
+  .anteprima img {
+    display: block; width: 100%;
+    border: 1px solid #D4C9B8;
+    background: #FFF;
+  }
+  .anteprima-azioni {
+    display: flex; align-items: center; gap: 8px; margin-top: 8px;
+  }
+  .anteprima-azioni .btn-outline { flex: 1; }
   .reset-link {
     display: block; margin: 16px auto 0; background: none; border: none;
     font-size: 10px; color: #7D6B5C; cursor: pointer; text-decoration: underline;
@@ -219,8 +220,8 @@
       <span class="chevron" id="avanzate-chev">▼</span>
     </button>
     <div class="collapse-content" id="avanzate-content">
-      <label class="label">Chioma per dosi LWA / TRV</label>
-      <div class="grid-3">
+      <label class="label">Chioma per dosi LWA</label>
+      <div class="grid-2">
         <div>
           <label class="label">Altezza m</label>
           <input type="text" inputmode="decimal" id="altezza" value="">
@@ -229,21 +230,11 @@
           <label class="label">Dist. file m</label>
           <input type="text" inputmode="decimal" id="distfile" value="">
         </div>
-        <div>
-          <label class="label">L. chioma m</label>
-          <input type="text" inputmode="decimal" id="chioma" value="">
-        </div>
       </div>
-      <div class="derived" id="lwa-line" style="margin-bottom:14px;">Compila per dosi in LWA o TRV.</div>
-      <div class="grid-2">
-        <div>
-          <label class="label">Acqua extra %</label>
-          <input type="text" inputmode="decimal" id="extra" value="5">
-        </div>
-        <div>
-          <label class="label">Tolleranza refluo %</label>
-          <input type="text" inputmode="decimal" id="toll" value="10">
-        </div>
+      <div class="derived" id="lwa-line" style="margin-bottom:14px;">Compila per dosi in LWA.</div>
+      <div>
+        <label class="label">Acqua extra %</label>
+        <input type="text" inputmode="decimal" id="extra" value="5">
       </div>
       <div class="derived">L'acqua da preparare viene arrotondata per eccesso a 0,5 L.</div>
     </div>
@@ -253,7 +244,12 @@
   <div id="tesi-list"></div>
 
   <button class="btn-primary" onclick="addTesi()">＋ Aggiungi tesi</button>
-  <button class="btn-outline" onclick="exportRiepilogo()">🖼 Riepilogo immagine</button>
+  <div id="anteprima-box" class="anteprima">
+    <span class="label" style="margin-top:16px;">Riepilogo</span>
+    <img id="anteprima-img" alt="Riepilogo dosi e miscele">
+    <button class="btn-outline" onclick="exportRiepilogo()">🖼 Salva / condividi</button>
+  </div>
+
   <button class="reset-link" onclick="resetAll()">↺ azzera tutto</button>
 
 </div>
@@ -265,11 +261,9 @@
 const UNITA = {
   'g/ha':        { acqua: true,  peso: 'g',   parcella: 'm²' },
   'g/ha LWA':    { acqua: true,  peso: 'g',   parcella: 'm²' },
-  'g/ha TRV':    { acqua: true,  peso: 'g',   parcella: 'm²' },
   'g/hL':        { acqua: true,  peso: 'g',   parcella: 'm²' },
   'mL/ha':       { acqua: true,  peso: 'mL',  parcella: 'm²' },
   'mL/ha LWA':   { acqua: true,  peso: 'mL',  parcella: 'm²' },
-  'mL/ha TRV':   { acqua: true,  peso: 'mL',  parcella: 'm²' },
   'mL/hL':       { acqua: true,  peso: 'mL',  parcella: 'm²' },
   'kg/ha':       { acqua: true,  peso: 'kg',  parcella: 'm²' },
   'L/ha':        { acqua: true,  peso: 'L',   parcella: 'm²' },
@@ -309,14 +303,14 @@ function coloreTesi(nome, idx) {
 // tendina raggruppata: le comuni in cima
 const GRUPPI_UNITA = [
   ['Comuni', ['g/ha', 'mL/ha', 'g/hL', 'mL/hL', 'kg/ha', 'L/ha']],
-  ['LWA · TRV', ['g/ha LWA', 'mL/ha LWA', 'g/ha TRV', 'mL/ha TRV']],
+  ['LWA', ['g/ha LWA', 'mL/ha LWA']],
   ['Altre unità', ['g/m Lineare', 'g/m³', 'g/Pianta', 'μg/Seme', 'g/t', 'mL/m Lineare', 'mL/m³', 'mL/Pianta', 'mL/Seme', 'mL/t', 'Trap/ha', 'Trap/Pianta']]
 ];
 
 // ============== STATO ==============
 let state = {
   tesi: [
-    { nome: '1', formulati: [{ nome: '', dose: '', unita: 'g/ha' }], prepOverride: null, refluo: '' }
+    { nome: '2', formulati: [{ nome: '', dose: '', unita: 'g/ha' }], prepOverride: null, refluo: '' }
   ]
 };
 
@@ -324,7 +318,7 @@ function salva() {
   try { localStorage.setItem('sagea-dosi', JSON.stringify(state)); } catch (e) {}
   try {
     const p = {};
-    for (const id of ['dim','acqua','altezza','distfile','chioma','extra','toll'])
+    for (const id of ['dim','acqua','altezza','distfile','extra'])
       p[id] = document.getElementById(id).value;
     localStorage.setItem('sagea-dosi-par', JSON.stringify(p));
   } catch (e) {}
@@ -333,6 +327,9 @@ function carica() {
   try {
     const s = localStorage.getItem('sagea-dosi');
     if (s) state = JSON.parse(s);
+    // migrazione: le unità TRV non sono più disponibili
+    for (const t of state.tesi) for (const f of t.formulati)
+      if (f.unita && f.unita.includes('TRV')) f.unita = f.unita.replace(' TRV', '');
     const p = JSON.parse(localStorage.getItem('sagea-dosi-par') || '{}');
     for (const id in p) { const el = document.getElementById(id); if (el) el.value = p[id]; }
   } catch (e) {}
@@ -347,10 +344,9 @@ function fmt(v, dec) {
 }
 
 function calcolaLwaTrv() {
-  const h = num('altezza'), d = num('distfile'), w = num('chioma');
-  const lwa = (h && d) ? 10000 / d * h * 2 : null;       // m²/ha
-  const trv = (h && d && w) ? 10000 / d * h * w : null;  // m³/ha
-  return { lwa, trv };
+  const h = num('altezza'), d = num('distfile');
+  const lwa = (h && d) ? 10000 / d * h * 2 : null; // m²/ha
+  return { lwa, trv: null };
 }
 
 // DosePianificata (VBA): quantità di formulato per la tesi
@@ -379,7 +375,7 @@ function acquaPreparata(acquaTesi, extraPct) {
 // ============== RENDER ==============
 function render() {
   const dim = num('dim'), acqua = num('acqua');
-  const extra = num('extra') ?? 5, toll = num('toll') ?? 10;
+  const extra = num('extra') ?? 5;
   const { lwa, trv } = calcolaLwaTrv();
 
   // acqua per tesi (P = dim × L/ha ÷ 10000)
@@ -388,9 +384,7 @@ function render() {
     P !== null ? `Acqua pianificata per tesi: <strong>${fmt(P, 2)} L</strong>` : 'Inserisci dimensione e volume.';
 
   document.getElementById('lwa-line').innerHTML =
-    (lwa || trv)
-      ? `LWA: <strong>${fmt(lwa, 0)} m²/ha</strong> &nbsp;·&nbsp; TRV: <strong>${fmt(trv, 0)} m³/ha</strong>`
-      : 'Compila per dosi in LWA o TRV.';
+    lwa ? `LWA: <strong>${fmt(lwa, 0)} m²/ha</strong>` : 'Compila per dosi in LWA.';
 
   const listEl = document.getElementById('tesi-list');
   listEl.innerHTML = '';
@@ -461,6 +455,7 @@ function render() {
     renderResults(ti);
   });
   salva();
+  aggiornaAnteprima();
 }
 
 // risultati per singola tesi (ricalcolo leggero mentre si digita)
@@ -470,7 +465,7 @@ function renderResults(ti) {
   if (!t || !el) return;
 
   const dim = num('dim'), acqua = num('acqua');
-  const extra = num('extra') ?? 5, toll = num('toll') ?? 10;
+  const extra = num('extra') ?? 5;
   const { lwa, trv } = calcolaLwaTrv();
   const P = (dim && acqua) ? dim * acqua / 10000 : null;
 
@@ -503,44 +498,26 @@ function renderResults(ti) {
     </div>`;
   }
 
-  // controllo refluo: nascosto finché non serve
-  if (usaAcqua && P > 0 && T > 0) {
-    const aperto = t.showRefluo || (t.refluo !== '' && t.refluo != null && t.refluo !== undefined && String(t.refluo) !== '');
-    if (!aperto) {
-      html += `<button class="refluo-link" onclick="state.tesi[${ti}].showRefluo=true;renderResults(${ti})">verifica refluo ›</button>`;
-    } else {
-      const rMin = Math.max(0, T - P * (1 + toll / 100));
-      const rMax = T - P * (1 - toll / 100);
-      const rif = parseFloat(String(t.refluo).replace(',', '.'));
-      let esito = '';
-      if (!isNaN(rif)) {
-        esito = (rif >= rMin - 1e-9 && rif <= rMax + 1e-9)
-          ? '<span class="tag-ok">✓ OK</span>'
-          : '<span class="tag-bad">✗ fuori tolleranza</span>';
-      }
-      html += `<div class="refluo">
-        <span>Refluo misurato</span>
-        <input type="text" inputmode="decimal" value="${t.refluo}" placeholder="L"
-          oninput="state.tesi[${ti}].refluo=this.value;salva();renderResults(${ti})">
-        <span class="range">atteso ${fmt(rMin, 2)}–${fmt(rMax, 2)} L</span>
-        ${esito}
-      </div>`;
-    }
-  }
 
   el.innerHTML = html || '<span class="range">Aggiungi dose per vedere i calcoli.</span>';
+  aggiornaAnteprima();
 }
 
 function addTesi() {
-  const prossimo = String(state.tesi.length + 1);
-  state.tesi.push({ nome: prossimo, formulati: [{ nome: '', dose: '', unita: 'g/ha' }], prepOverride: null, refluo: '' });
+  let max = 1; // se non ci sono numeri si parte comunque da 2
+  for (const t of state.tesi) {
+    const n = parseInt(t.nome, 10);
+    if (!isNaN(n) && n > max) max = n;
+  }
+  const unita = state.tesi[0]?.formulati[0]?.unita || 'g/ha';
+  state.tesi.push({ nome: String(max + 1), formulati: [{ nome: '', dose: '', unita }], prepOverride: null, refluo: '' });
   salva(); render();
 }
 
 function resetAll() {
   if (!confirm('Azzerare tutti i dati inseriti?')) return;
-  state = { tesi: [{ nome: '1', formulati: [{ nome: '', dose: '', unita: 'g/ha' }], prepOverride: null, refluo: '' }] };
-  for (const [id, v] of [['dim','10'],['acqua','1000'],['altezza',''],['distfile',''],['chioma',''],['extra','5'],['toll','10']])
+  state = { tesi: [{ nome: '2', formulati: [{ nome: '', dose: '', unita: 'g/ha' }], prepOverride: null, refluo: '' }] };
+  for (const [id, v] of [['dim','10'],['acqua','1000'],['altezza',''],['distfile',''],['extra','5']])
     document.getElementById(id).value = v;
   salva(); render();
 }
@@ -614,7 +591,6 @@ function renderRiepilogoCanvas() {
   ctx.textAlign = 'left';
   let par = `Tesi ${fmt(dim, 2)} m² · ${fmt(acqua, 0)} L/ha` + (P !== null ? ` · acqua/tesi ${fmt(P, 2)} L` : '');
   if (lwa) par += ` · LWA ${fmt(lwa, 0)} m²/ha`;
-  if (trv) par += ` · TRV ${fmt(trv, 0)} m³/ha`;
   ctx.fillText(par, pad, 56);
   ctx.strokeStyle = '#3D2F1F';
   ctx.lineWidth = 2;
@@ -715,6 +691,16 @@ function renderRiepilogoCanvas() {
   return canvas;
 }
 
+// riepilogo sempre visibile in fondo, aggiornato con un breve debounce
+let anteprimaTimer = null;
+function aggiornaAnteprima() {
+  clearTimeout(anteprimaTimer);
+  anteprimaTimer = setTimeout(() => {
+    const img = document.getElementById('anteprima-img');
+    if (img) img.src = renderRiepilogoCanvas().toDataURL('image/png');
+  }, 250);
+}
+
 async function exportRiepilogo() {
   if (document.fonts && document.fonts.ready) {
     try { await document.fonts.ready; } catch (e) {}
@@ -736,12 +722,15 @@ async function exportRiepilogo() {
 }
 
 // input globali: ricalcolo tutto
-for (const id of ['dim','acqua','altezza','distfile','chioma','extra','toll']) {
+for (const id of ['dim','acqua','altezza','distfile','extra']) {
   document.getElementById(id).addEventListener('input', () => { salva(); render(); });
 }
 
 carica();
 render();
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(aggiornaAnteprima).catch(() => {});
+}
 
 // === PWA: installazione e aggiornamenti ===
 (function () {

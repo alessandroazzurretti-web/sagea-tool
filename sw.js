@@ -1,5 +1,5 @@
 // SAGEA Tool · service worker
-const CACHE = 'sagea-v10';
+const CACHE = 'sagea-v15';
 const ASSETS = [
   './',
   './index.html',
