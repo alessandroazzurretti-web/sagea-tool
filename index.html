@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#3D2F1F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SAGEA Tool">
+<title>SAGEA Tool</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: #F5F1EA;
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #3D2F1F;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body { min-height: 100vh; padding: 20px 16px 32px; display: flex; flex-direction: column; }
+  .container { max-width: 720px; margin: 0 auto; width: 100%; flex: 1; }
+
+  header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    border-bottom: 2px solid #3D2F1F;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+  }
+  .leaf { width: 40px; height: 40px; flex-shrink: 0; color: #5C7A4A; margin-top: 4px; }
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 1.1;
+  }
+  .subtitle {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 12px;
+    color: #5C4D3E;
+    margin-top: 4px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #7D6B5C;
+    margin-bottom: 12px;
+  }
+
+  .tool-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #FFFFFF;
+    border: 1px solid #D4C9B8;
+    padding: 18px 16px;
+    margin-bottom: 12px;
+    text-decoration: none;
+    color: inherit;
+  }
+  .tool-card:active { background: #FAF6EE; }
+  .tool-thumb {
+    display: grid;
+    grid-template-columns: repeat(3, 14px);
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .tool-thumb span { width: 14px; height: 14px; border: 1px solid; }
+  .tool-text { flex: 1; min-width: 0; }
+  .tool-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
+    font-size: 17px;
+  }
+  .tool-desc { font-size: 11px; color: #7D6B5C; margin-top: 4px; line-height: 1.4; }
+  .tool-arrow { font-size: 24px; color: #7D6B5C; flex-shrink: 0; }
+
+  .tool-card.soon {
+    background: #FAF6EE;
+    pointer-events: none;
+  }
+  .tool-card.soon .tool-title { color: #7D6B5C; }
+  .soon-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: #A89578;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  footer {
+    text-align: center;
+    padding-top: 24px;
+  }
+  .offline-note { font-size: 11px; color: #5C7A4A; margin-bottom: 6px; }
+  .version {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #A89578;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <svg class="leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>
+    </svg>
+    <div>
+      <h1>SAGEA Tool</h1>
+      <div class="subtitle">Strumenti per la sperimentazione in campo</div>
+    </div>
+  </header>
+
+  <div class="section-label">I tuoi strumenti</div>
+
+  <a class="tool-card" href="tools/schemi-blocchi.html">
+    <div class="tool-thumb">
+      <span style="background:#FFFFFF;border-color:#3D2F1F;"></span>
+      <span style="background:#E8A8A0;border-color:#5C2018;"></span>
+      <span style="background:#A8C0E0;border-color:#1F3F5C;"></span>
+      <span style="background:#F0B888;border-color:#5A2A08;"></span>
+      <span style="background:#B8D4A8;border-color:#2D4A1F;"></span>
+      <span style="background:#F0C8D8;border-color:#5C2538;"></span>
+      <span style="background:#F0DC8C;border-color:#4D3608;"></span>
+      <span style="background:#C8B8D8;border-color:#2F1F5C;"></span>
+      <span style="background:#A8C8C0;border-color:#1F3D38;"></span>
+    </div>
+    <div class="tool-text">
+      <div class="tool-title">Schemi a Blocchi</div>
+      <div class="tool-desc">Disegni RCB, CRD e quadrato latino · mappa di campo · export immagine</div>
+    </div>
+    <div class="tool-arrow">›</div>
+  </a>
+
+  <div class="tool-card soon">
+    <div class="tool-text">
+      <div class="tool-title">Diario dei rilievi</div>
+      <div class="soon-tag">In arrivo</div>
+    </div>
+  </div>
+
+  <div class="tool-card soon">
+    <div class="tool-text">
+      <div class="tool-title">Calcolo dosi e miscele</div>
+      <div class="soon-tag">In arrivo</div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="offline-note">✓ Installabile · funziona offline</div>
+  <div class="version">SAGEA Tool · v1</div>
+</footer>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
