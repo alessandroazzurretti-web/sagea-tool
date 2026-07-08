@@ -1,5 +1,5 @@
 // Strumenti in campo · service worker
-const CACHE = 'strumenti-v43';
+const CACHE = 'strumenti-v47';
 const ASSETS = [
   './',
   './index.html',

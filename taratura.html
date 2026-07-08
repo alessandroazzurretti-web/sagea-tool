@@ -79,7 +79,8 @@
     background: transparent; outline: none; color: #3D2F1F;
   }
   table.measure input:focus { background: #FAF6EE; }
-  table.measure td.dcell.bad { background: #F4E4DC; color: #A04030; font-weight: 600; }
+  table.measure td.out.bad { background: #F4E4DC; }
+  table.measure td.out.bad input { color: #A04030; font-weight: 600; }
   table.measure td.dcell.mrun { background: #F0EBE0; }
   table.measure td.dcell { background: #FAF6EE; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #3D2F1F; padding: 4px; }
 
@@ -277,17 +278,22 @@ function calcola() {
       if (num2(state.misure[u][r]) !== null) totRun++;
   const completo = totRun === n * 3;
 
-  // conformità: la MEDIA di ogni ugello (sui 3 run) deve stare in D ±5%.
-  // I 3 run servono proprio a mediare il rumore di misura: un singolo run
-  // anomalo non deve far fallire la prova.
+  // conformità (Mod007f): nessun ugello, singolarmente, deve risultare fuori
+  // dall'accettabilità D ±5%. Un ugello è fuori se ANCHE UNA SOLA delle sue
+  // misure (run A, B o C) cade oltre la banda.
   const medie = [];
+  const badRun = [];
   const badUgello = [];
   let fuori = 0;
   for (let u = 0; u < n; u++) {
-    const md = mediaUgello(u);
-    medie.push(md);
-    const completoU = state.misure[u].every(v => num2(v) !== null);
-    const bad = (D !== null && md !== null && completoU && (md > hi + 1e-9 || md < lo - 1e-9));
+    medie.push(mediaUgello(u));
+    const flags = [];
+    for (let r = 0; r < 3; r++) {
+      const v = num2(state.misure[u][r]);
+      flags.push(D !== null && v !== null && (v > hi + 1e-9 || v < lo - 1e-9));
+    }
+    badRun.push(flags);
+    const bad = flags.some(Boolean);
     badUgello.push(bad);
     if (bad) fuori++;
   }
@@ -296,7 +302,7 @@ function calcola() {
   // scarto % di ogni ugello dalla media generale (per diagnosi)
   const scarti = medie.map(md => (D && md !== null) ? r2((md - D) / D * 100) : null);
 
-  return { T, D, hi, lo, E, F, n, medie, badUgello, scarti, fuori, totRun, completo, conforme };
+  return { T, D, hi, lo, E, F, n, medie, badRun, badUgello, scarti, fuori, totRun, completo, conforme };
 }
 
 // ============== RENDER ==============
@@ -313,17 +319,17 @@ function renderTabella() {
     html += '<tr><td class="rowlbl">' + (r + 1) + ' \u00b7 ' + runLbl[r] + '</td>';
     for (let u = 0; u < state.nozzles; u++) {
       const v = state.misure[u][r];
-      html += '<td class="out"><input type="text" inputmode="decimal" value="' + v + '" data-u="' + u + '" data-r="' + r + '" placeholder="mL"></td>';
+      html += '<td class="out' + (c.badRun[u][r] ? ' bad' : '') + '"><input type="text" inputmode="decimal" value="' + v + '" data-u="' + u + '" data-r="' + r + '" placeholder="mL"></td>';
     }
     const mr = mediaRun(r);
     html += '<td class="dcell mrun">' + (mr !== null ? fmt2(mr) : '\u2014') + '</td></tr>';
   }
-  // riga D media per ugello: qui si valuta la conformità
+  // riga D media per ugello
   html += '<tr><td class="rowlbl">D media</td>';
   for (let u = 0; u < state.nozzles; u++) {
     const md = c.medie[u];
     const title = c.scarti[u] !== null ? ' title="scarto ' + (c.scarti[u] > 0 ? '+' : '') + fmt2(c.scarti[u]) + '% da D"' : '';
-    html += '<td class="dcell' + (c.badUgello[u] ? ' bad' : '') + '"' + title + '>' + (md !== null ? fmt2(md) : '\u2014') + '</td>';
+    html += '<td class="dcell"' + title + '>' + (md !== null ? fmt2(md) : '\u2014') + '</td>';
   }
   html += '<td class="dcell"></td></tr>';
   t.innerHTML = html;
@@ -345,6 +351,9 @@ function aggiornaBadEDmedia() {
   const rows = t.querySelectorAll('tr'); // [0]=header, [1..3]=run, [4]=D media
   for (let r = 0; r < 3; r++) {
     const cells = rows[r + 1].querySelectorAll('td');
+    for (let u = 0; u < state.nozzles; u++) {
+      cells[u + 1].className = 'out' + (c.badRun[u][r] ? ' bad' : '');
+    }
     const mr = mediaRun(r);
     cells[state.nozzles + 1].textContent = mr !== null ? fmt2(mr) : '\u2014';
   }
@@ -353,7 +362,7 @@ function aggiornaBadEDmedia() {
     const md = c.medie[u];
     const cell = dRow[u + 1];
     cell.textContent = md !== null ? fmt2(md) : '\u2014';
-    cell.className = 'dcell' + (c.badUgello[u] ? ' bad' : '');
+    cell.className = 'dcell';
     if (c.scarti[u] !== null) cell.title = 'scarto ' + (c.scarti[u] > 0 ? '+' : '') + fmt2(c.scarti[u]) + '% da D';
     else cell.removeAttribute('title');
   }
@@ -375,10 +384,10 @@ function renderEsito() {
   if (!c.completo) {
     html += `<div class="esito"><span class="big">Compila tutti i run</span>${c.totRun} misure su ${c.n * 3}. La conformità si valuta a tabella completa.</div>`;
   } else if (c.conforme) {
-    html += `<div class="esito ok"><span class="big">Taratura conforme</span>La media di ogni ugello rientra nell'intervallo D ±5%.</div>`;
+    html += `<div class="esito ok"><span class="big">Taratura conforme</span>Nessun ugello presenta misure fuori dall'intervallo D ±5%.</div>`;
   } else {
-    const elenco = c.badUgello.map((b, u) => b ? `N° ${u + 1} (${c.scarti[u] > 0 ? '+' : ''}${fmt2(c.scarti[u])}%)` : null).filter(Boolean).join(', ');
-    html += `<div class="esito ko"><span class="big">Taratura non conforme</span>${c.fuori === 1 ? 'Ugello fuori' : `${c.fuori} ugelli fuori`} dall'intervallo D ±5%: ${elenco}. Verificare usura o intasamento.</div>`;
+    const elenco = c.badUgello.map((b, u) => b ? `N° ${u + 1}` : null).filter(Boolean).join(', ');
+    html += `<div class="esito ko"><span class="big">Taratura non conforme</span>${c.fuori === 1 ? 'Ugello fuori' : `${c.fuori} ugelli fuori`} dall'accettabilità D ±5%: ${elenco}. Misure fuori banda evidenziate in rosso. Verificare usura o intasamento.</div>`;
   }
   el.innerHTML = html;
 }
@@ -458,8 +467,10 @@ function renderRiepilogoCanvas() {
     ctx.fillText((r + 1) + ' \u00b7 ' + runLbl[r], pad + lblW / 2, ry + 21);
     for (let u = 0; u < c.n; u++) {
       const nv = num2(state.misure[u][r]);
-      ctx.fillStyle = '#3D2F1F';
-      ctx.font = `13px ${MONO}`;
+      const bad = c.badRun[u][r];
+      if (bad) { ctx.fillStyle = '#F4E4DC'; ctx.fillRect(colX(u) + 2, ry + 3, nozW - 4, rowH - 6); }
+      ctx.fillStyle = bad ? '#A04030' : '#3D2F1F';
+      ctx.font = `${bad ? '600 ' : ''}13px ${MONO}`;
       ctx.fillText(nv !== null ? fmt2(nv) : '\u2014', colX(u) + nozW / 2, ry + 21);
     }
     const mr = mediaRun(r);
@@ -473,9 +484,7 @@ function renderRiepilogoCanvas() {
   ctx.fillText('D media', pad + lblW / 2, ry + 21);
   for (let u = 0; u < c.n; u++) {
     const md = c.medie[u];
-    const bad = c.badUgello[u];
-    if (bad) { ctx.fillStyle = '#F4E4DC'; ctx.fillRect(colX(u) + 2, ry + 3, nozW - 4, rowH - 6); }
-    ctx.fillStyle = bad ? '#A04030' : '#3D2F1F'; ctx.font = `600 13px ${MONO}`;
+    ctx.fillStyle = '#3D2F1F'; ctx.font = `600 13px ${MONO}`;
     ctx.fillText(md !== null ? fmt2(md) : '\u2014', colX(u) + nozW / 2, ry + 21);
   }
   ctx.strokeStyle = '#3D2F1F'; ctx.lineWidth = 1;
@@ -499,7 +508,7 @@ function renderRiepilogoCanvas() {
   ctx.fillText(`Intervallo accettato ${fmt2(c.lo)} – ${fmt2(c.hi)} mL (D ±5%)`, pad, y);
   y += 20;
   const esito = !c.completo ? ['#7D6B5C', '#F5F1EA', `Tabella incompleta: ${c.totRun}/${c.n * 3} run`]
-    : c.conforme ? ['#5C7A4A', '#EAF1E2', 'TARATURA CONFORME · medie ugelli entro D ±5%']
+    : c.conforme ? ['#5C7A4A', '#EAF1E2', 'TARATURA CONFORME · nessun ugello fuori D ±5%']
     : ['#A04030', '#F4E4DC', `TARATURA NON CONFORME · ugelli fuori: ${c.badUgello.map((b, u) => b ? 'N\u00b0 ' + (u + 1) : null).filter(Boolean).join(', ')}`];
   ctx.fillStyle = esito[1]; ctx.fillRect(pad, y, tw, 30);
   ctx.fillStyle = esito[0]; ctx.fillRect(pad, y, 4, 30);
