@@ -1,6 +1,6 @@
 {
   "name": "Strumenti in campo",
-  "short_name": "Strumenti",
+  "short_name": "Field tools",
   "description": "Strumenti per la sperimentazione agronomica in campo",
   "lang": "it",
   "start_url": "./index.html",
