@@ -59,7 +59,6 @@
   .crop-card:active { background: #F0EBE0; }
   .crop-card { position: relative; }
   .crop-card .cico { font-size: 22px; flex-shrink: 0; }
-  .crop-card small { display: block; font-weight: 400; color: #7D6B5C; font-size: 11px; margin-top: 2px; }
   .crop-card .star {
     position: absolute; top: 6px; right: 8px; font-size: 13px; color: #C9A227;
     display: none; line-height: 1;
@@ -68,7 +67,6 @@
   .crop-card.pressing { background: #E8DFC8; transform: scale(0.97); transition: transform 0.1s; }
 
   /* Lista stadi */
-  .stage-group { margin-bottom: 18px; }
   .stage-head {
     font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 14px; color: #FFF;
     background: #5C7A4A; padding: 7px 12px; position: sticky; top: 0; z-index: 5;
@@ -96,7 +94,6 @@
     font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 22px; color: #3D2F1F;
   }
   .crop-title .ct-ico { font-size: 26px; }
-  .empty { text-align: center; color: #7D6B5C; padding: 40px 20px; font-size: 14px; }
   .src { font-size: 10px; color: #A89578; margin-top: 8px; font-style: italic; }
 
   .hidden { display: none; }
@@ -1841,7 +1838,7 @@ let currentCrop = null;
 let sortMode = 'az';           // 'az' | 'fav'
 let favorites = loadFavorites();
 
-// --- Preferiti persistenti (localStorage; nel render di Claude.ai si azzera al refresh) ---
+// --- Preferiti persistenti (salvati in localStorage) ---
 function loadFavorites() {
   try { return new Set(JSON.parse(localStorage.getItem('bbch_fav') || '[]')); }
   catch (e) { return new Set(); }
@@ -1867,7 +1864,7 @@ function cropCardHTML(c, wide) {
   return `<button class="crop-card ${wide ? 'wide' : ''} ${favorites.has(c.id) ? 'is-fav' : ''}" data-id="${c.id}">
        <span class="star">★</span>
        <span class="cico">${c.ico}</span>
-       <span>${c.nome}<small>${c.stages.filter(s => s[1] !== '__RANGE__').length} stadi</small></span>
+       <span>${c.nome}</span>
      </button>`;
 }
 
@@ -1971,7 +1968,7 @@ function openCrop(id) {
   document.getElementById('info-btn').style.visibility = 'hidden';
   document.getElementById('sortbar').style.display = 'none';
   document.getElementById('hint').style.display = 'none';
-  document.getElementById('count').textContent = currentCrop.stages.filter(s => s[1] !== '__RANGE__').length + ' stadi';
+  document.getElementById('count').textContent = '';
   document.getElementById('stage-list').innerHTML = stageRows(currentCrop.stages);
   document.getElementById('src').textContent = 'Fonte: ' + currentCrop.src;
   document.getElementById('crops-view').classList.add('hidden');
