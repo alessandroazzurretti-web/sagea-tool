@@ -63,6 +63,14 @@
   .modal-body li { margin-bottom: 8px; }
   .modal-body strong { color: #5C4A38; }
   .modal-body .nota { font-size: 12px; color: #7D6B5C; border-top: 1px solid #D4C9B8; padding-top: 12px; margin-top: 4px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .modal-actions button {
+    flex: 1; padding: 12px; border: 1px solid #3D2F1F; background: #FFF; color: #3D2F1F;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; letter-spacing: 0.04em; cursor: pointer;
+  }
+  .modal-actions button:active { background: #3D2F1F; color: #F5F1EA; }
+  .modal-actions button.danger { border-color: #A04030; color: #A04030; }
+  .modal-actions button.danger:active { background: #A04030; color: #F5F1EA; }
   h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 22px; }
 
   .card { background: #FFF; border: 1px solid #D4C9B8; padding: 16px; margin-bottom: 12px; }
@@ -248,6 +256,17 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="confirm-modal" onclick="if(event.target===this)confirmCancel()">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-head"><h2>Conferma</h2></div>
+      <div class="modal-body"><p id="confirm-msg"></p></div>
+      <div class="modal-actions">
+        <button onclick="confirmCancel()">Annulla</button>
+        <button class="danger" id="confirm-ok">Conferma</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Parametri prova -->
   <section class="card">
     <span class="label">Prova</span>
@@ -311,7 +330,21 @@
 // ============== INFO MODALE ==============
 function openInfo() { document.getElementById('info-modal').classList.add('open'); }
 function closeInfo() { document.getElementById('info-modal').classList.remove('open'); }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeInfo(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeInfo(); confirmCancel(); } });
+
+// ============== DIALOG DI CONFERMA (in stile) ==============
+let _confirmCb = null;
+function askConfirm(msg, onOk, okLabel) {
+  document.getElementById('confirm-msg').textContent = msg;
+  const ok = document.getElementById('confirm-ok');
+  ok.textContent = okLabel || 'Conferma';
+  _confirmCb = onOk;
+  document.getElementById('confirm-modal').classList.add('open');
+}
+function confirmCancel() { document.getElementById('confirm-modal').classList.remove('open'); _confirmCb = null; }
+document.getElementById('confirm-ok').addEventListener('click', () => {
+  const cb = _confirmCb; confirmCancel(); if (cb) cb();
+});
 
 // ============== UNITÀ DI MISURA (dal Mod006) ==============
 // acqua: la dose si riproporziona all'acqua preparata (miscela in botte)
@@ -573,11 +606,12 @@ function addTesi() {
 }
 
 function resetAll() {
-  if (!confirm('Azzerare tutti i dati inseriti?')) return;
-  state = { tesi: [{ nome: '2', formulati: [{ nome: '', dose: '', unita: 'g/ha' }], prepOverride: null, refluo: '' }] };
-  for (const [id, v] of [['dim','10'],['acqua','1000'],['altezza',''],['distfile',''],['extra','5']])
-    document.getElementById(id).value = v;
-  salva(); render();
+  askConfirm('Azzerare tutti i dati inseriti?', () => {
+    state = { tesi: [{ nome: '2', formulati: [{ nome: '', dose: '', unita: 'g/ha' }], prepOverride: null, refluo: '' }] };
+    for (const [id, v] of [['dim','10'],['acqua','1000'],['altezza',''],['distfile',''],['extra','5']])
+      document.getElementById(id).value = v;
+    salva(); render();
+  }, 'Azzera');
 }
 
 function toggleCollapse(name) {

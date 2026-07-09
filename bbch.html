@@ -34,7 +34,7 @@
   }
   .info-btn:active { background: #3D2F1F; color: #F5F1EA; }
   h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 22px; }
-  .subtitle { font-size: 11px; color: #7D6B5C; letter-spacing: 0.16em; text-transform: uppercase; margin-top: 4px; }
+
 
   .sortbar { display: flex; gap: 8px; margin-bottom: 14px; }
   .sort-opt {
@@ -125,7 +125,6 @@
     </svg>
     <div>
       <h1>Scala BBCH</h1>
-      <div class="subtitle" id="crop-name">Fasi fenologiche</div>
     </div>
     <button class="info-btn" id="info-btn" onclick="document.getElementById('info-modal').classList.add('open')" aria-label="Come si usa">i</button>
   </div>
@@ -1870,7 +1869,6 @@ function cropCardHTML(c, wide) {
 }
 
 function renderCrops() {
-  document.getElementById('crop-name').textContent = 'Fasi fenologiche';
   document.getElementById('back').style.visibility = 'visible';
   document.getElementById('info-btn').style.visibility = 'visible';
   document.getElementById('sortbar').style.display = 'flex';
@@ -1962,7 +1960,6 @@ function stageRows(stages) {
 
 function openCrop(id) {
   currentCrop = CROPS.find(c => c.id === id);
-  document.getElementById('crop-name').textContent = currentCrop.nome;
   document.getElementById('ct-ico').textContent = currentCrop.ico;
   document.getElementById('ct-name').textContent = currentCrop.nome;
   document.getElementById('back').style.visibility = 'visible';
