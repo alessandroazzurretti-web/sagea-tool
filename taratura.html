@@ -33,6 +33,34 @@
   }
   .back-btn:active { background: #3D2F1F; color: #F5F1EA; }
   .leaf { width: 28px; height: 28px; flex-shrink: 0; color: #5C7A4A; }
+  .info-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; flex-shrink: 0; margin-left: auto;
+    border: 1px solid #3D2F1F; background: #FFF; color: #3D2F1F; cursor: pointer;
+    font-family: 'Fraunces', Georgia, serif; font-size: 24px; line-height: 1;
+  }
+  .info-btn:active { background: #3D2F1F; color: #F5F1EA; }
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 100;
+    background: rgba(45,35,25,0.55); padding: 24px;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #F5F1EA; border: 2px solid #3D2F1F; max-width: 440px; width: 100%;
+    max-height: 80vh; overflow-y: auto; padding: 22px 22px 26px;
+  }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .modal-head h2 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 20px; color: #3D2F1F; margin: 0; }
+  .modal-close {
+    background: none; border: none; font-size: 22px; line-height: 1; color: #7D6B5C; cursor: pointer; padding: 0 4px;
+  }
+  .modal-body { font-size: 13px; line-height: 1.55; color: #3D2F1F; }
+  .modal-body p { margin: 0 0 12px; }
+  .modal-body ol { margin: 0 0 12px; padding-left: 20px; }
+  .modal-body li { margin-bottom: 8px; }
+  .modal-body strong { color: #5C4A38; }
+  .modal-body .nota { font-size: 12px; color: #7D6B5C; border-top: 1px solid #D4C9B8; padding-top: 12px; margin-top: 4px; }
   h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 22px; }
 
   .card { background: #FFF; border: 1px solid #D4C9B8; padding: 16px; margin-bottom: 12px; }
@@ -136,8 +164,27 @@
         <path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>
       </svg>
       <h1>Taratura Irroratrice</h1>
+      <button class="info-btn" onclick="openInfo()" aria-label="Come si usa">i</button>
     </div>
   </header>
+
+  <div class="modal-overlay" id="info-modal" onclick="if(event.target===this)closeInfo()">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="info-title">
+      <div class="modal-head">
+        <h2 id="info-title">Come si usa</h2>
+        <button class="modal-close" onclick="closeInfo()" aria-label="Chiudi">✕</button>
+      </div>
+      <div class="modal-body">
+        <ol>
+          <li>Compila i dati dell'<strong>attrezzatura</strong> e la <strong>pressione</strong> di lavoro.</li>
+          <li>Imposta il <strong>tempo di ogni run</strong> (T) in secondi e il <strong>numero di ugelli</strong> della barra.</li>
+          <li>Raccogli l'erogato di ogni ugello e inserisci le <strong>tre misure</strong> (run A, B, C) in mL.</li>
+          <li>A tabella completa l'app calcola la media <strong>D</strong>, la portata e l'esito di conformità.</li>
+        </ol>
+        <p class="nota">Un ugello è <strong>non conforme</strong> se anche una sola delle sue misure esce dall'intervallo D ±5%: la cella fuori banda viene evidenziata in rosso. I tre run servono a ridurre l'errore di misura.</p>
+      </div>
+    </div>
+  </div>
 
   <!-- Attrezzatura -->
   <section class="card">
@@ -198,6 +245,11 @@
 </div>
 
 <script>
+// ============== INFO MODALE ==============
+function openInfo() { document.getElementById('info-modal').classList.add('open'); }
+function closeInfo() { document.getElementById('info-modal').classList.remove('open'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeInfo(); });
+
 // ============== STATO ==============
 // misure[ugello][run] in mL; ugello 0-based, run 0..2
 let state = {
