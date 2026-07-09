@@ -541,9 +541,6 @@
   }
 
 
-  /* Schermata iniziale */
-  .intro-lines div { font-size: 12px; margin-bottom: 8px; }
-
   footer {
     margin-top: 24px;
     padding-top: 12px;
@@ -725,15 +722,6 @@
         <span class="chevron" id="legend-chev">▼</span>
       </button>
       <div class="collapse-content" id="legend-content"></div>
-    </div>
-  </div>
-
-  <!-- Schermata iniziale -->
-  <div id="intro" class="card intro">
-    <div class="label">Inizia</div>
-    <div class="intro-lines" style="margin-top:10px;">
-      <div>Tocca <strong>Nuovo</strong> per generare uno schema sperimentale randomizzato.</div>
-      <div>Tocca la <strong>i</strong> in alto per la guida.</div>
     </div>
   </div>
 
@@ -1203,8 +1191,7 @@ function renderScheme() {
   const s = state.scheme;
   if (!s) return;
 
-  // Nasconde l'intro, mostra la mappa
-  document.getElementById('intro').style.display = 'none';
+  // Mostra la mappa
   document.getElementById('result').style.display = 'block';
   document.getElementById('map-label').textContent =
     `${designInfo[s.design].nome} · ${s.rows}×${s.cols} · ${s.treatments} tesi · ${s.replications} repliche`;
