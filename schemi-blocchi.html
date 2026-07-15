@@ -169,22 +169,25 @@
   }
 
   /* Toggle direzione */
-  .seg {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    border: 1px solid #D4C9B8;
-    margin-top: 4px;
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    margin-top: 10px; cursor: pointer; font-size: 13px; color: #3D2F1F;
   }
-  .seg button {
-    padding: 10px;
-    background: #FFF;
-    border: none;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    color: #3D2F1F;
-    cursor: pointer;
+  .toggle-row strong { font-weight: 600; }
+  .switch { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
+  .switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .switch .slider {
+    position: absolute; inset: 0; cursor: pointer;
+    background: #E0D8C8; border: 1px solid #B8A98F; border-radius: 24px;
+    transition: background 0.15s, border-color 0.15s;
   }
-  .seg button.active { background: #3D2F1F; color: #F5F1EA; }
+  .switch .slider::before {
+    content: ''; position: absolute; width: 18px; height: 18px; left: 2px; top: 2px;
+    background: #FFF; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    transition: transform 0.15s;
+  }
+  .switch input:checked + .slider { background: #5C7A4A; border-color: #5C7A4A; }
+  .switch input:checked + .slider::before { transform: translateX(18px); }
 
   /* Validazione */
   .check {
@@ -338,11 +341,6 @@
     font-family: 'IBM Plex Mono', monospace;
     opacity: 0.6;
   }
-  .field.arm-num .plot-num {
-    font-size: clamp(10px, 2.6vw, 13px);
-    font-weight: 500;
-    opacity: 0.95;
-  }
   .star {
     position: absolute;
     top: 2px;
@@ -363,6 +361,10 @@
     font-weight: 700;
     font-size: clamp(16px, 4.5vw, 28px);
     line-height: 1;
+  }
+  .tesi.code {
+    font-size: clamp(14px, 3.8vw, 23px);
+    letter-spacing: -0.02em;
   }
   .rep {
     font-family: 'Fraunces', Georgia, serif;
@@ -670,10 +672,28 @@
     </select>
 
     <label class="label" style="margin-top:14px;">Numerazione parcelle</label>
-    <div class="seg">
-      <button type="button" id="num-seq" class="active" onclick="setNumbering('seq')">T1 · T2 · T3 …</button>
-      <button type="button" id="num-arm" onclick="setNumbering('arm')">101 · 201 · 301</button>
-    </div>
+    <label class="toggle-row">
+      <span>Notazione romana · 1 I, 1 II, 1 III</span>
+      <span class="switch">
+        <input type="checkbox" id="num-seq-sw" checked onchange="setNumberingToggle('seq', this.checked)">
+        <span class="slider"></span>
+      </span>
+    </label>
+    <label class="toggle-row">
+      <span>Notazione numerica · 101, 201, 301</span>
+      <span class="switch">
+        <input type="checkbox" id="num-arm-sw" onchange="setNumberingToggle('arm', this.checked)">
+        <span class="slider"></span>
+      </span>
+    </label>
+
+    <label class="toggle-row" style="margin-top:16px;">
+      <span>Inizia con <strong>T1</strong> nella prima parcella</span>
+      <span class="switch">
+        <input type="checkbox" id="start-t1-chk" checked onchange="setStartT1(this.checked)">
+        <span class="slider"></span>
+      </span>
+    </label>
 
     <div id="shape-section">
       <label class="label" style="margin-top:14px;">Forma del campo</label>
@@ -747,10 +767,12 @@ const state = {
   scheme: null,
   editMode: false,
   numbering: 'seq', // 'seq' = 1,2,3… | 'arm' = replica×100 + progressivo (101, 201…)
+  startT1: true,    // true = parcella 1 forzata a tesi 1 · replica I; false = partenza randomizzata
   excluded: new Set() // celle depennate, chiave "rigaVisuale,colonna"
 };
 
-const palette = [
+// 8 colori base (tesi 1-8)
+const BASE = [
   { bg: '#FFFFFF', fg: '#3D2F1F', name: 'bianco' },
   { bg: '#E8A8A0', fg: '#5C2018', name: 'rosso' },
   { bg: '#A8C0E0', fg: '#1F3F5C', name: 'blu' },
@@ -759,19 +781,31 @@ const palette = [
   { bg: '#F0C8D8', fg: '#5C2538', name: 'rosa' },
   { bg: '#F0DC8C', fg: '#4D3608', name: 'giallo' },
   { bg: '#C8B8D8', fg: '#2F1F5C', name: 'viola' },
-  { bg: '#E8D8E8', fg: '#3D2548', name: 'viola-bianco' },
-  { bg: '#F4C880', fg: '#4A2818', name: 'giallo-rosso' },
-  { bg: '#D4B8A0', fg: '#3D2516', name: 'rosso-verde' },
-  { bg: '#D8C0D0', fg: '#2F2540', name: 'rosa-blu' },
-  { bg: '#F0D0C8', fg: '#4A1F18', name: 'bianco-rosso' },
-  { bg: '#E8C8D0', fg: '#4D2538', name: 'bianco-rosa' },
-  { bg: '#A8C8C0', fg: '#1F3D38', name: 'verde-blu' },
-  { bg: '#C0D0A8', fg: '#2F4520', name: '' },
-  { bg: '#D0C8A8', fg: '#3D3520', name: '' },
-  { bg: '#A8B8C8', fg: '#202F40', name: '' },
-  { bg: '#C8A8B8', fg: '#3D1F2F', name: '' },
-  { bg: '#A8C0A8', fg: '#1F3F1F', name: '' },
 ];
+// Combinazioni per le tesi oltre l'8ª: coppie di colori base (mostrate bicolori)
+const COMBOS = [
+  [7, 0], // 9  viola + bianco
+  [6, 1], // 10 giallo + rosso
+  [1, 4], // 11 rosso + verde
+  [5, 2], // 12 rosa + blu
+  [0, 1], // 13 bianco + rosso
+  [0, 5], // 14 bianco + rosa
+  [4, 2], // 15 verde + blu
+  [4, 3], // 16 verde + arancio
+  [6, 3], // 17 giallo + arancio
+  [2, 3], // 18 blu + arancio
+  [5, 1], // 19 rosa + rosso
+  [4, 7], // 20 verde + viola
+];
+// Colore per la tesi t (1-based): base per 1-8, combinazione bicolore oltre
+function getColor(t) {
+  const i = t - 1;
+  if (i < BASE.length) return BASE[i];
+  const combo = COMBOS[(i - BASE.length) % COMBOS.length];
+  const a = BASE[combo[0]], b = BASE[combo[1]];
+  return { bg: a.bg, fg: a.fg, name: `${a.name}-${b.name}`, combo: [a.bg, b.bg] };
+}
+const PALETTE_LEN = BASE.length + COMBOS.length;
 
 // ============== UTILS ==============
 function toRoman(num) {
@@ -1012,6 +1046,7 @@ function generate() {
     .filter(([r, c]) => !excluded.has(exclKey(r, c)));
   const usedPath = path.slice(0, usedCells);
   const design = state.design;
+  const startT1 = state.startT1 !== false;   // default: parcella 1 = T1 · replica I
   if (design === 'latin') {
     if (!(rows === cols && cols === treatments && treatments === replications)) {
       return showError('Il quadrato latino richiede righe = colonne = tesi = repliche.');
@@ -1027,9 +1062,14 @@ function generate() {
   function tryOneScheme(enforceNoRowDouble, enforceNoColDouble) {
     const grid = Array.from({ length: rows }, () => Array(cols).fill(null));
     const counts = Array(treatments + 1).fill(0); // usati solo dal CRD
-    const [r0, c0] = usedPath[0];
-    grid[r0][c0] = { treatment: 1, replication: 1, plotNum: 1 };
-    counts[1] = 1;
+    // Partenza fissa: la parcella 1 è tesi 1 · replica I (opzionale)
+    let startIdx = 0;
+    if (startT1) {
+      const [r0, c0] = usedPath[0];
+      grid[r0][c0] = { treatment: 1, replication: 1, plotNum: 1 };
+      counts[1] = 1;
+      startIdx = 1;
+    }
 
     function getNeighborTreatments(r, c) {
       const ts = new Set();
@@ -1101,7 +1141,7 @@ function generate() {
       return false;
     }
 
-    return assign(1) ? grid : null;
+    return assign(startIdx) ? grid : null;
   }
 
   function scoreScheme(grid) {
@@ -1173,7 +1213,7 @@ function generate() {
     metrics: computeMetrics(bestGrid, treatments),
     validFound, bufferCells, enforceNoRowDouble, enforceNoColDouble,
     relaxedRow, relaxedCol,
-    excluded
+    excluded, startT1
   };
 
   renderScheme();
@@ -1210,7 +1250,7 @@ function renderScheme() {
   const fieldEl = document.getElementById('field');
   fieldEl.innerHTML = '';
   fieldEl.classList.toggle('editing', state.editMode);
-  fieldEl.classList.toggle('arm-num', state.numbering === 'arm');
+  fieldEl.classList.remove('arm-num');
   const minCell = s.cols > 6 ? '52px' : '0';
   const colTpl = `auto repeat(${s.cols}, minmax(${minCell}, 1fr))`;
 
@@ -1254,16 +1294,32 @@ function renderScheme() {
         cellEl.appendChild(span);
       } else {
         cellEl.dataset.has = '1';
-        const color = palette[(cell.treatment - 1) % palette.length];
-        const isFixed = cell.plotNum === 1;
+        const color = getColor(cell.treatment);
+        const isFixed = cell.plotNum === 1 && s.startT1 !== false;
         cellEl.className = 'cell' + (isFixed ? ' fixed' : '');
-        cellEl.style.backgroundColor = color.bg;
+        if (color.combo) {
+          // bicolore diagonale (tesi oltre l'8ª)
+          cellEl.style.background = `linear-gradient(135deg, ${color.combo[0]} 0 50%, ${color.combo[1]} 50% 100%)`;
+        } else {
+          cellEl.style.backgroundColor = color.bg;
+        }
         cellEl.style.color = color.fg;
         if (!isFixed) cellEl.style.borderColor = color.fg;
 
+        // Due notazioni della stessa parcella:
+        //  - romana:   tesi grande + replica in numero romano (es. 1 I)
+        //  - numerica: codice replica×100 + tesi (es. 101)
+        const romanIsMain = state.numbering !== 'arm';
+        const codeNum = cell.replication * 100 + cell.treatment;
+
+        // angolo in alto a sinistra: la notazione NON protagonista
         const plotNum = document.createElement('div');
         plotNum.className = 'plot-num';
-        plotNum.textContent = displayNum(cell);
+        if (romanIsMain) {
+          plotNum.textContent = codeNum;                                   // piccolo: 101
+        } else {
+          plotNum.textContent = `${cell.treatment} ${toRoman(cell.replication)}`; // piccolo: 1 I
+        }
         cellEl.appendChild(plotNum);
 
         if (isFixed) {
@@ -1273,16 +1329,24 @@ function renderScheme() {
           cellEl.appendChild(star);
         }
 
+        // centro: la notazione protagonista, grande
         const content = document.createElement('div');
         content.className = 'cell-content';
-        const tesiSpan = document.createElement('span');
-        tesiSpan.className = 'tesi';
-        tesiSpan.textContent = cell.treatment;
-        const repSpan = document.createElement('span');
-        repSpan.className = 'rep';
-        repSpan.textContent = toRoman(cell.replication);
-        content.appendChild(tesiSpan);
-        content.appendChild(repSpan);
+        if (romanIsMain) {
+          const tesiSpan = document.createElement('span');
+          tesiSpan.className = 'tesi';
+          tesiSpan.textContent = cell.treatment;
+          const repSpan = document.createElement('span');
+          repSpan.className = 'rep';
+          repSpan.textContent = toRoman(cell.replication);
+          content.appendChild(tesiSpan);
+          content.appendChild(repSpan);
+        } else {
+          const codeSpan = document.createElement('span');
+          codeSpan.className = 'tesi code';
+          codeSpan.textContent = codeNum;
+          content.appendChild(codeSpan);
+        }
         cellEl.appendChild(content);
 
         // Trascinamento (attivo solo in modalità sposta)
@@ -1350,9 +1414,10 @@ function renderMetrics() {
   }
 
   // Stato reale di #1 (dopo spostamenti manuali può cambiare)
+  const wantStartT1 = s.startT1 !== false;
   let firstCell = null;
   for (const row of s.grid) for (const cell of row) if (cell && cell.plotNum === 1) firstCell = cell;
-  const firstOk = firstCell && firstCell.treatment === 1 && firstCell.replication === 1;
+  const firstOk = !wantStartT1 || (firstCell && firstCell.treatment === 1 && firstCell.replication === 1);
 
   // stesse segnalazioni, stesso stile degli altri avvisi
   if (!firstOk) {
@@ -1363,7 +1428,9 @@ function renderMetrics() {
     html += `<div class="buffer-notice">${coppie} di <strong>stessa tesi in celle confinanti</strong>.</div>`;
   }
   if (firstOk && s.metrics.adjCount === 0) {
-    html += `<div class="buffer-notice">Partenza e adiacenze <strong>rispettate</strong>.</div>`;
+    html += wantStartT1
+      ? `<div class="buffer-notice">Partenza e adiacenze <strong>rispettate</strong>.</div>`
+      : `<div class="buffer-notice">Adiacenze <strong>rispettate</strong> · partenza libera.</div>`;
   }
   el.innerHTML = html;
 }
@@ -1374,10 +1441,13 @@ function renderLegend() {
   const el = document.getElementById('legend-content');
   let html = '<div class="legend-grid">';
   for (let i = 0; i < s.treatments; i++) {
-    const c = palette[i % palette.length];
+    const c = getColor(i + 1);
+    const swatchBg = c.combo
+      ? `background:linear-gradient(135deg, ${c.combo[0]} 0 50%, ${c.combo[1]} 50% 100%);`
+      : `background:${c.bg};`;
     html += `
       <div class="legend-item">
-        <div class="legend-swatch" style="background:${c.bg};color:${c.fg};border-color:${c.fg};">${i+1}</div>
+        <div class="legend-swatch" style="${swatchBg}color:${c.fg};border-color:${c.fg};">${i+1}</div>
         <div class="legend-text">T${i+1}${c.name ? '<span class="legend-sub">'+c.name+'</span>' : ''}</div>
       </div>
     `;
@@ -1481,14 +1551,32 @@ function renumberPlots() {
   }
 }
 
+function setStartT1(on) {
+  state.startT1 = on;
+  // l'opzione agisce sulla randomizzazione: ha effetto alla prossima generazione
+}
+
 function setNumbering(mode) {
   state.numbering = mode;
-  document.getElementById('num-seq').classList.toggle('active', mode === 'seq');
-  document.getElementById('num-arm').classList.toggle('active', mode === 'arm');
   if (state.scheme) {
     renumberPlots(); // garantisce armNum anche su schemi già generati
     renderScheme();
   }
+}
+
+// Due levette che si escludono: accendendone una si spegne l'altra,
+// e non si può spegnere l'unica attiva (una resta sempre selezionata).
+function setNumberingToggle(mode, on) {
+  const seqSw = document.getElementById('num-seq-sw');
+  const armSw = document.getElementById('num-arm-sw');
+  if (!on) {
+    // tentativo di spegnere l'attiva: riaccendila e non fare nulla
+    (mode === 'seq' ? seqSw : armSw).checked = true;
+    return;
+  }
+  seqSw.checked = (mode === 'seq');
+  armSw.checked = (mode === 'arm');
+  setNumbering(mode);
 }
 
 // Numero mostrato secondo la modalità scelta.
@@ -1518,12 +1606,12 @@ function applyResize() {
   if (rows < s.rows) {
     for (let r = 0; r < s.rows - rows; r++)
       for (let c = 0; c < s.cols; c++)
-        if (s.grid[r][c]) return showError(`Impossibile ridurre: la riga R${s.rows - r} contiene parcelle. Spostale prima con "Sposta".`);
+        if (s.grid[r][c]) return showError(`Per ridurre servono celle vuote: la riga R${s.rows - r} contiene parcelle. Liberala con "Sposta".`);
   }
   if (cols < s.cols) {
     for (let r = 0; r < s.rows; r++)
       for (let c = cols; c < s.cols; c++)
-        if (s.grid[r][c]) return showError(`Impossibile ridurre: la colonna C${cols + 1} o successive contengono parcelle. Spostale prima con "Sposta".`);
+        if (s.grid[r][c]) return showError(`Per ridurre servono celle vuote: la colonna C${cols + 1} o successive contengono parcelle. Liberala con "Sposta".`);
   }
 
   // le righe cambiano in alto → le coordinate visuali traslano di shift
@@ -1598,7 +1686,10 @@ function updateCheck() {
   if (sc && sc.design !== 'latin' && state.design === sc.design &&
       (rows !== sc.rows || cols !== sc.cols)) {
     rb.style.display = 'block';
-    rb.textContent = `⇲ Ridimensiona a ${rows}×${cols} mantenendo lo schema`;
+    const piuGrande = (rows * cols) >= (sc.rows * sc.cols);
+    rb.textContent = piuGrande
+      ? `⤢ Ridimensiona a ${rows}×${cols} · aggiunge celle vuote`
+      : `⤡ Ridimensiona a ${rows}×${cols} · rimuove celle vuote`;
   } else {
     rb.style.display = 'none';
   }
@@ -1738,21 +1829,36 @@ function renderMapCanvas(s) {
         ctx.textBaseline = 'middle';
         ctx.fillText('bordo', x + cell / 2, y + cell / 2);
       } else {
-        const color = palette[(cellData.treatment - 1) % palette.length];
-        const isFixed = cellData.plotNum === 1;
-        ctx.fillStyle = color.bg;
-        ctx.fillRect(x, y, cell, cell);
+        const color = getColor(cellData.treatment);
+        const isFixed = cellData.plotNum === 1 && s.startT1 !== false;
+        if (color.combo) {
+          // triangolo superiore-sinistro col primo colore, inferiore-destro col secondo
+          ctx.fillStyle = color.combo[0];
+          ctx.beginPath();
+          ctx.moveTo(x, y); ctx.lineTo(x + cell, y); ctx.lineTo(x, y + cell); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = color.combo[1];
+          ctx.beginPath();
+          ctx.moveTo(x + cell, y); ctx.lineTo(x + cell, y + cell); ctx.lineTo(x, y + cell); ctx.closePath(); ctx.fill();
+        } else {
+          ctx.fillStyle = color.bg;
+          ctx.fillRect(x, y, cell, cell);
+        }
         ctx.strokeStyle = isFixed ? '#3D2F1F' : color.fg;
         ctx.lineWidth = isFixed ? 5 : 2.5;
         ctx.strokeRect(x + ctx.lineWidth / 2, y + ctx.lineWidth / 2, cell - ctx.lineWidth, cell - ctx.lineWidth);
 
-        // numero parcella
+        const romanIsMain = state.numbering !== 'arm';
+        const codeNum = cellData.replication * 100 + cellData.treatment;
+
+        // angolo: notazione non protagonista
         ctx.fillStyle = color.fg;
-        ctx.globalAlpha = state.numbering === 'arm' ? 0.95 : 0.65;
-        ctx.font = `${state.numbering === 'arm' ? '500 17px' : '15px'} ${MONO}`;
+        ctx.globalAlpha = 0.65;
+        ctx.font = `15px ${MONO}`;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'alphabetic';
-        ctx.fillText(displayNum(cellData), x + 7, y + 21);
+        const cornerTxt = romanIsMain ? String(codeNum)
+          : `${cellData.treatment} ${toRoman(cellData.replication)}`;
+        ctx.fillText(cornerTxt, x + 7, y + 21);
         ctx.globalAlpha = 1;
 
         // stella sulla partenza
@@ -1763,24 +1869,31 @@ function renderMapCanvas(s) {
           ctx.fillText('★', x + cell - 7, y + 22);
         }
 
-        // tesi grande + replica romana
+        // centro: notazione protagonista, grande
         ctx.textBaseline = 'alphabetic';
-        ctx.font = `700 46px ${SERIF}`;
-        const tesiTxt = String(cellData.treatment);
-        const tW = ctx.measureText(tesiTxt).width;
-        ctx.font = `500 19px ${SERIF}`;
-        const repTxt = toRoman(cellData.replication);
-        const rW = ctx.measureText(repTxt).width;
-        const startX = x + (cell - (tW + 3 + rW)) / 2;
-        const baseY = y + cell / 2 + 20;
         ctx.textAlign = 'left';
-        ctx.font = `700 46px ${SERIF}`;
         ctx.fillStyle = color.fg;
-        ctx.fillText(tesiTxt, startX, baseY);
-        ctx.font = `500 19px ${SERIF}`;
-        ctx.globalAlpha = 0.85;
-        ctx.fillText(repTxt, startX + tW + 3, baseY);
-        ctx.globalAlpha = 1;
+        const baseY = y + cell / 2 + 20;
+        if (romanIsMain) {
+          ctx.font = `700 46px ${SERIF}`;
+          const tesiTxt = String(cellData.treatment);
+          const tW = ctx.measureText(tesiTxt).width;
+          ctx.font = `500 19px ${SERIF}`;
+          const repTxt = toRoman(cellData.replication);
+          const rW = ctx.measureText(repTxt).width;
+          const startX = x + (cell - (tW + 3 + rW)) / 2;
+          ctx.font = `700 46px ${SERIF}`;
+          ctx.fillText(tesiTxt, startX, baseY);
+          ctx.font = `500 19px ${SERIF}`;
+          ctx.globalAlpha = 0.85;
+          ctx.fillText(repTxt, startX + tW + 3, baseY);
+          ctx.globalAlpha = 1;
+        } else {
+          ctx.font = `700 38px ${SERIF}`;
+          const codeTxt = String(codeNum);
+          const cW = ctx.measureText(codeTxt).width;
+          ctx.fillText(codeTxt, x + (cell - cW) / 2, baseY);
+        }
       }
     });
   });
