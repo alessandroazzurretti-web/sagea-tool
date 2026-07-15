@@ -34,6 +34,49 @@
     margin-bottom: 24px;
   }
   .leaf { width: 40px; height: 40px; flex-shrink: 0; color: #5C7A4A; }
+  .gear-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; flex-shrink: 0; margin-left: auto;
+    border: 1px solid #3D2F1F; background: #FFF; color: #3D2F1F; cursor: pointer;
+  }
+  .gear-btn:active { background: #3D2F1F; color: #F5F1EA; }
+  .gear-btn svg { width: 22px; height: 22px; }
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 100;
+    background: rgba(45,35,25,0.55); padding: 24px; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #F5F1EA; border: 2px solid #3D2F1F; max-width: 400px; width: 100%; padding: 22px; }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .modal-head h2 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 20px; margin: 0; color: #3D2F1F; }
+  .modal-close { background: none; border: none; font-size: 22px; color: #7D6B5C; cursor: pointer; }
+  .set-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; }
+  .set-row .lbl { color: #7D6B5C; }
+  .set-row .val { font-family: 'IBM Plex Mono', monospace; color: #3D2F1F; }
+  .set-sep { border-top: 1px solid #D4C9B8; margin: 14px 0; }
+  .set-toggle { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #3D2F1F; cursor: pointer; }
+  .switch { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
+  .switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .switch .slider {
+    position: absolute; inset: 0; cursor: pointer;
+    background: #E0D8C8; border: 1px solid #B8A98F; border-radius: 24px; transition: background .15s, border-color .15s;
+  }
+  .switch .slider::before {
+    content: ''; position: absolute; width: 18px; height: 18px; left: 2px; top: 2px;
+    background: #FFF; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .15s;
+  }
+  .switch input:checked + .slider { background: #5C7A4A; border-color: #5C7A4A; }
+  .switch input:checked + .slider::before { transform: translateX(18px); }
+  .set-status { font-size: 12px; color: #7D6B5C; min-height: 1.4em; margin-bottom: 12px; font-style: italic; }
+  .set-status.ok { color: #5C7A4A; font-style: normal; }
+  .set-status.new { color: #A04030; font-style: normal; }
+  .set-btn {
+    width: 100%; padding: 12px; border: 1px solid #3D2F1F; background: #FFF; color: #3D2F1F;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; letter-spacing: .04em; cursor: pointer; margin-top: 8px;
+  }
+  .set-btn:active { background: #3D2F1F; color: #F5F1EA; }
+  .set-btn.primary { background: #3D2F1F; color: #F5F1EA; border-color: #3D2F1F; }
+  .set-btn:disabled { opacity: .4; cursor: default; }
   h1 {
     font-family: 'Fraunces', Georgia, serif;
     font-weight: 700;
@@ -162,7 +205,35 @@
     <div>
       <h1>Strumenti in campo</h1>
     </div>
+    <button class="gear-btn" onclick="openSettings()" aria-label="Impostazioni">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
   </header>
+
+  <div class="modal-overlay" id="settings-modal" onclick="if(event.target===this)closeSettings()">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-head">
+        <h2>Impostazioni</h2>
+        <button class="modal-close" onclick="closeSettings()" aria-label="Chiudi">✕</button>
+      </div>
+      <div class="set-row"><span class="lbl">Versione corrente</span><span class="val" id="set-version">—</span></div>
+      <div class="set-sep"></div>
+      <label class="set-toggle">
+        <span>Aggiornamenti automatici</span>
+        <span class="switch">
+          <input type="checkbox" id="auto-sw" checked onchange="toggleAutoUpdate(this.checked)">
+          <span class="slider"></span>
+        </span>
+      </label>
+      <div class="set-sep"></div>
+      <div class="set-status" id="set-status"></div>
+      <button class="set-btn" id="set-check" onclick="checkUpdate()">Verifica aggiornamenti</button>
+      <button class="set-btn primary" id="set-apply" onclick="applyUpdate()" style="display:none;">Aggiorna ora</button>
+    </div>
+  </div>
 
   <div class="section-label">I tuoi strumenti</div>
 
@@ -242,7 +313,7 @@
 <footer>
   <button id="install-link" class="install-link" style="display:none;" onclick="installaApp()">Installa l'app</button>
   <div class="credits">Developed by AA</div>
-  <div class="version">Version 1.7.2</div>
+  <div class="version">Version 1.8.0</div>
 </footer>
 
 <script>
@@ -308,22 +379,29 @@
     }
   };
 
-  // — aggiornamento automatico all'avvio: se c'è una versione nuova, si attiva subito —
+  // — gestione aggiornamenti: automatica (default) o manuale col consenso —
+  window.__swReg = null;
+  window.__updateReady = false;
+  function autoUpdateOn() {
+    try { return localStorage.getItem('auto-update') !== 'off'; } catch (e) { return true; }
+  }
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').then(reg => {
-      // versione già in attesa (scaricata in una sessione precedente): attivala ora
-      if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-      // versione nuova trovata ora: appena pronta, attivala
+      window.__swReg = reg;
+      if (reg.waiting) {
+        window.__updateReady = true;
+        if (autoUpdateOn()) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
       reg.addEventListener('updatefound', () => {
         const nuovo = reg.installing;
         if (!nuovo) return;
         nuovo.addEventListener('statechange', () => {
           if (nuovo.state === 'installed' && navigator.serviceWorker.controller) {
-            nuovo.postMessage({ type: 'SKIP_WAITING' });
+            window.__updateReady = true;
+            if (autoUpdateOn()) nuovo.postMessage({ type: 'SKIP_WAITING' });
           }
         });
       });
-      // controllo forzato di aggiornamenti a ogni avvio
       reg.update();
     }).catch(() => {});
     let ricaricata = false;
@@ -331,6 +409,73 @@
       if (!ricaricata) { ricaricata = true; location.reload(); }
     });
   }
+
+  // ===== PANNELLO IMPOSTAZIONI =====
+  function leggiVersione() {
+    return new Promise(resolve => {
+      const sw = navigator.serviceWorker && navigator.serviceWorker.controller;
+      if (!sw) { resolve(null); return; }
+      const ch = new MessageChannel();
+      ch.port1.onmessage = e => resolve(e.data && e.data.version);
+      try { sw.postMessage({ type: 'GET_VERSION' }, [ch.port2]); } catch (e) { resolve(null); }
+      setTimeout(() => resolve(null), 1000);
+    });
+  }
+  function fmtVer(v) { return v ? v.replace('strumenti-', 'v') : '—'; }
+
+  window.openSettings = async function () {
+    document.getElementById('settings-modal').classList.add('open');
+    document.getElementById('auto-sw').checked = autoUpdateOn();
+    const st = document.getElementById('set-status');
+    st.textContent = ''; st.className = 'set-status';
+    document.getElementById('set-apply').style.display = window.__updateReady ? 'block' : 'none';
+    document.getElementById('set-version').textContent = 'lettura…';
+    const v = await leggiVersione();
+    document.getElementById('set-version').textContent = fmtVer(v);
+  };
+  window.closeSettings = function () { document.getElementById('settings-modal').classList.remove('open'); };
+
+  window.toggleAutoUpdate = function (on) {
+    try { localStorage.setItem('auto-update', on ? 'on' : 'off'); } catch (e) {}
+    // se riacceso e c'è già un aggiornamento pronto, applicalo
+    if (on && window.__updateReady && window.__swReg) {
+      const w = window.__swReg.waiting || window.__swReg.installing;
+      if (w) w.postMessage({ type: 'SKIP_WAITING' });
+    }
+  };
+
+  window.checkUpdate = async function () {
+    const st = document.getElementById('set-status');
+    const btn = document.getElementById('set-check');
+    if (!navigator.onLine) { st.className = 'set-status'; st.textContent = 'Nessuna connessione: riprova quando sei online.'; return; }
+    if (!window.__swReg) { st.textContent = 'Aggiornamenti non disponibili.'; return; }
+    btn.disabled = true; st.className = 'set-status'; st.textContent = 'Controllo in corso…';
+    try {
+      await window.__swReg.update();
+      setTimeout(() => {
+        if (window.__swReg.installing || window.__swReg.waiting || window.__updateReady) {
+          window.__updateReady = true;
+          st.className = 'set-status new'; st.textContent = 'Aggiornamento disponibile.';
+          document.getElementById('set-apply').style.display = 'block';
+          if (autoUpdateOn()) {
+            const w = window.__swReg.waiting || window.__swReg.installing;
+            if (w) w.postMessage({ type: 'SKIP_WAITING' });
+          }
+        } else {
+          st.className = 'set-status ok'; st.textContent = 'Sei alla versione più recente.';
+        }
+        btn.disabled = false;
+      }, 1200);
+    } catch (e) { st.className = 'set-status'; st.textContent = 'Verifica non riuscita. Riprova.'; btn.disabled = false; }
+  };
+
+  window.applyUpdate = function () {
+    const reg = window.__swReg;
+    const w = reg && (reg.waiting || reg.installing);
+    if (w) w.postMessage({ type: 'SKIP_WAITING' });
+    document.getElementById('set-status').textContent = 'Aggiornamento in corso…';
+  };
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSettings(); });
 
 })();
 </script>
